@@ -1,0 +1,28 @@
+% my $name=config('name') || '[YourName]';
+% title "Convos";
+<div class="landing-page">
+  <header class="row">
+    <h1>
+      <span class="logo">Convos</span>
+      <small>for <%= $name %></small>
+    </h1>
+  </header>
+<!--[if IE]>
+  <div class="alert">
+    Convos does not work in Internet Explorer. It works best in the following browsers:
+    (in order)
+    <ol>
+      <li><%= link_to 'Google Chrome', 'http://www.google.com/chrome' %></li>
+      <li><%= link_to 'Mozilla Firefox', 'http://getfirefox.com' %></li>
+      <li><%= link_to 'Opera', 'http://opera.com' %></li>
+      <li>Or any webkit based browser, such as Safari.</li>
+    </ol>
+  </div>
+<![endif]-->
+  %= include "user/$form"
+  <div class="row footer">
+    <hr>
+    &copy; <%= link_to "Nordaaker", "http://nordaaker.com"%>
+    - <%= link_to "About", "http://convos.by" %>
+  </div>
+</div>

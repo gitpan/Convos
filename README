@@ -1,0 +1,125 @@
+NAME
+    Convos - Multiuser IRC proxy with web interface
+
+VERSION
+    0.1
+
+DESCRIPTION
+    WiRC is to a multi-user IRC Proxy, that also provides a easy to use Web
+    interface. Feature list:
+
+    *   Always online
+
+        The backend server will keep you logged in and logs all the activity
+        in your archive.
+
+    *   Archive
+
+        All chats will be logged and indexed, which allow you to search in
+        earlier conversations.
+
+    *   Avatars
+
+        The chat contains profile pictures which can be retrieved from
+        Facebook or from gravatar.com.
+
+    *   Include external resources
+
+        Links to images and video will be displayed inline. No need to click
+        on the link to view the data.
+
+  Running convos
+    Convos has sane defaults so after installing Convos you should be able
+    to just run it:
+
+      # Install
+      $ cpanm Convos
+      # Run it
+      $ convos backend &
+      $ convos daemon
+
+    The above works, but if you have a lot of users you probably want to use
+    hypnotoad instead of "daemon":
+
+      $ hypnotoad $(which convos)
+
+    The command above will start a full featured, UNIX optimized, preforking
+    non-blocking webserver. Run the same command again, and the webserver
+    will hot reload the source code without loosing any connections.
+
+  Configuration
+    You can also customize the config by setting "MOJO_CONFIG" before
+    running any of the commands above. Example:
+
+      $ MOJO_CONFIG=$HOME/.convos.conf convos daemon
+
+    You can use
+    <https://github.com/Nordaaker/convos/blob/release/convos.conf> as config
+    file template.
+
+  Wanted features
+    *   Per client state (track seen messages).
+
+    *   Web Notifications that integrate with notification center.
+
+    *   Fast JS Web Interface with async communication (Web Sockets)
+
+    *   Use HTML5 pushstate to be restful and fall back to page reloads for
+        fully functioning non-async lite version.
+
+    *   Monospaced to be compatible with old school IRC clients/ascii
+
+    *   Rich media preview for links.
+
+    *   Facebook Connect for registration/Avatars.
+
+    *   Useful Archive search/viewer
+
+  Architecture principles
+    *   Keep the JS simple and manageable
+
+    *   Use Redis to manage state / publish subscribe
+
+    *   Archive logs in plain text format, use ack to search them.
+
+    *   Bootstrap-based user interface
+
+SEE ALSO
+    *   Convos::Archive
+
+        Mojolicious controller for IRC logs.
+
+    *   Convos::Client
+
+        Mojolicious controller for IRC chat.
+
+    *   Convos::User
+
+        Mojolicious controller for user data.
+
+    *   Convos::Core
+
+        Backend functionality.
+
+ATTRIBUTES
+  archive
+    Holds a Convos::Core::Archive object.
+
+  core
+    Holds a Convos::Core object.
+
+METHODS
+  startup
+    This method will run once at server start
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2012-2013, Nordaaker.
+
+    This program is free software, you can redistribute it and/or modify it
+    under the terms of the Artistic License version 2.0.
+
+AUTHOR
+    Jan Henning Thorsen - "jhthorsen@cpan.org"
+
+    Marcus Ramberg - "marcus@nordaaker.com"
+
