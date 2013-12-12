@@ -2,11 +2,11 @@ NAME
     Convos - Multiuser IRC proxy with web interface
 
 VERSION
-    0.1
+    0.1001
 
 DESCRIPTION
-    WiRC is to a multi-user IRC Proxy, that also provides a easy to use Web
-    interface. Feature list:
+    Convos is to a multi-user IRC Proxy, that also provides a easy to use
+    Web interface. Feature list:
 
     *   Always online
 

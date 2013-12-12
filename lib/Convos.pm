@@ -6,17 +6,11 @@ Convos - Multiuser IRC proxy with web interface
 
 =head1 VERSION
 
-0.1
-
-=begin html
-
-<img src="http://strider.vm.nordaaker.com/523f43dc5893510900000008/marcusramberg/wirc/badge">
-
-=end html
+0.1001
 
 =head1 DESCRIPTION
 
-WiRC is to a multi-user IRC Proxy, that also provides a easy to use Web
+Convos is to a multi-user IRC Proxy, that also provides a easy to use Web
 interface. Feature list:
 
 =over 4
@@ -141,7 +135,7 @@ use File::Basename qw( dirname );
 use Convos::Core;
 use Convos::Core::Util ();
 
-our $VERSION = '0.1';
+our $VERSION = '0.1001';
 $ENV{CONVOS_BACKEND_REV} ||= 0;
 
 =head1 ATTRIBUTES

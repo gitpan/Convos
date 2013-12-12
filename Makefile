@@ -13,13 +13,13 @@
 
 #     ABSTRACT_FROM => q[lib/Convos.pm]
 #     AUTHOR => [q[Jan Henning Thorsen <jhthorsen@cpan.org>]]
-#     BUILD_REQUIRES => { Mojo::IRC=>q[0.0303], Time::Piece=>q[1.2], Mojolicious=>q[4.6], IRC::Utils=>q[0.12], Parse::IRC=>q[1.18], Mojolicious::Plugin::AssetPack=>q[0.0502], Mojo::Redis=>q[0.992], Unicode::UTF8=>q[0.58] }
+#     BUILD_REQUIRES => { Mojolicious=>q[4.6], Mojolicious::Plugin::AssetPack=>q[0.0502], Mojo::IRC=>q[0.0303], Mojo::Redis=>q[0.992], Unicode::UTF8=>q[0.58], Parse::IRC=>q[1.18], Time::Piece=>q[1.2], IRC::Utils=>q[0.12] }
 #     CONFIGURE_REQUIRES => {  }
 #     EXE_FILES => [q[script/convos]]
 #     LICENSE => q[artistic_2]
-#     META_MERGE => { resources=>{ license=>q[http://www.opensource.org/licenses/artistic-license-2.0], homepage=>q[https://github.com/Nordaaker/convos], bugtracker=>q[https://github.com/Nordaaker/convos/issues], repository=>q[https://github.com/Nordaaker/convos] } }
+#     META_MERGE => { resources=>{ license=>q[http://www.opensource.org/licenses/artistic-license-2.0], bugtracker=>q[https://github.com/Nordaaker/convos/issues], homepage=>q[https://github.com/Nordaaker/convos], repository=>q[https://github.com/Nordaaker/convos] } }
 #     NAME => q[Convos]
-#     PREREQ_PM => { Time::Piece=>q[1.2], Mojo::IRC=>q[0.0303], Mojolicious=>q[4.6], IRC::Utils=>q[0.12], Parse::IRC=>q[1.18], Mojolicious::Plugin::AssetPack=>q[0.0502], Mojo::Redis=>q[0.992], Unicode::UTF8=>q[0.58] }
+#     PREREQ_PM => { Parse::IRC=>q[1.18], Unicode::UTF8=>q[0.58], Mojo::Redis=>q[0.992], Mojo::IRC=>q[0.0303], Mojolicious::Plugin::AssetPack=>q[0.0502], Time::Piece=>q[1.2], IRC::Utils=>q[0.12], Mojolicious=>q[4.6] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/Convos.pm]
 #     test => { TESTS=>q[t/*.t] }
@@ -61,11 +61,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = Convos
 NAME_SYM = Convos
-VERSION = 0.1
+VERSION = 0.1001
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_1
+VERSION_SYM = 0_1001
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.1
+XS_VERSION = 0.1001
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -243,8 +243,8 @@ TO_INST_PM = lib/Convos.pm \
 	lib/Convos/public/js/jquery.pjax.min.js \
 	lib/Convos/public/js/selectize.min.js \
 	lib/Convos/public/js/ws-reconnecting.js \
-	lib/Convos/public/packed/convos-2e92b48dca79894d76c267531c35cd81.js \
-	lib/Convos/public/packed/convos-e83bfb973589982636a43e2c2994c046.css \
+	lib/Convos/public/packed/convos-24520b065f62fbe702d11648f8a1c02f.css \
+	lib/Convos/public/packed/convos-671e8d97976e1dbcfbd351eeac7cb5bf.js \
 	lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
 	lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
 	lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
@@ -286,176 +286,176 @@ TO_INST_PM = lib/Convos.pm \
 	lib/Convos/templates/user/login.html.ep \
 	lib/Convos/templates/user/register.html.ep
 
-PM_TO_BLIB = lib/Convos/public/js/ws-reconnecting.js \
-	blib/lib/Convos/public/js/ws-reconnecting.js \
+PM_TO_BLIB = lib/Convos/templates/event/welcome.html.ep \
+	blib/lib/Convos/templates/event/welcome.html.ep \
 	lib/Convos/templates/event/topic.html.ep \
 	blib/lib/Convos/templates/event/topic.html.ep \
-	lib/Convos/public/js/jquery.pjax.min.js \
-	blib/lib/Convos/public/js/jquery.pjax.min.js \
-	lib/Convos/templates/event/whois.html.ep \
-	blib/lib/Convos/templates/event/whois.html.ep \
-	lib/Convos/public/js/jquery.hotkeys.js \
-	blib/lib/Convos/public/js/jquery.hotkeys.js \
-	lib/Convos/public/js/jquery.nanoscroller.min.js \
-	blib/lib/Convos/public/js/jquery.nanoscroller.min.js \
-	lib/Convos/convos.conf \
-	blib/lib/Convos/convos.conf \
-	lib/Convos/public/js/jquery.helpers.js \
-	blib/lib/Convos/public/js/jquery.helpers.js \
-	lib/Convos/public/packed/convos-2e92b48dca79894d76c267531c35cd81.js \
-	blib/lib/Convos/public/packed/convos-2e92b48dca79894d76c267531c35cd81.js \
-	lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
-	blib/lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
-	lib/Convos/templates/event/nick_quit.html.ep \
-	blib/lib/Convos/templates/event/nick_quit.html.ep \
-	lib/Convos/public/image/loader-facebook.gif \
-	blib/lib/Convos/public/image/loader-facebook.gif \
-	lib/Convos/public/js/jquery.pjax.js \
-	blib/lib/Convos/public/js/jquery.pjax.js \
-	lib/Convos/Loopback.pm \
-	blib/lib/Convos/Loopback.pm \
-	lib/Convos/templates/event/historic_messages.html.ep \
-	blib/lib/Convos/templates/event/historic_messages.html.ep \
-	lib/Convos.pm \
-	blib/lib/Convos.pm \
-	lib/Convos/templates/event/action_message.html.ep \
-	blib/lib/Convos/templates/event/action_message.html.ep \
-	lib/Convos/templates/event/help.html.ep \
-	blib/lib/Convos/templates/event/help.html.ep \
-	lib/Convos/public/js/selectize.min.js \
-	blib/lib/Convos/public/js/selectize.min.js \
-	lib/Convos/Chat.pm \
-	blib/lib/Convos/Chat.pm \
-	lib/Convos/templates/index.html.ep \
-	blib/lib/Convos/templates/index.html.ep \
-	lib/Convos/Plugin/Helpers.pm \
-	blib/lib/Convos/Plugin/Helpers.pm \
-	lib/Convos/templates/client/view.html.ep \
-	blib/lib/Convos/templates/client/view.html.ep \
-	lib/Convos/Core/Util.pm \
-	blib/lib/Convos/Core/Util.pm \
-	lib/Convos/templates/event/message.html.ep \
-	blib/lib/Convos/templates/event/message.html.ep \
-	lib/Convos/templates/event/rpl_namreply.html.ep \
-	blib/lib/Convos/templates/event/rpl_namreply.html.ep \
-	lib/Convos/public/image/landing-page-example-chat.jpeg \
-	blib/lib/Convos/public/image/landing-page-example-chat.jpeg \
-	lib/Convos/Command/backend.pm \
-	blib/lib/Convos/Command/backend.pm \
-	lib/Convos/templates/event/nick_parted.html.ep \
-	blib/lib/Convos/templates/event/nick_parted.html.ep \
-	lib/Convos/templates/event/connection.html.ep \
-	blib/lib/Convos/templates/event/connection.html.ep \
-	lib/Convos/public/font/fontawesome-webfont.eot \
-	blib/lib/Convos/public/font/fontawesome-webfont.eot \
-	lib/Convos/User.pm \
-	blib/lib/Convos/User.pm \
-	lib/Convos/templates/client/notification_list.html.ep \
-	blib/lib/Convos/templates/client/notification_list.html.ep \
-	lib/Convos/public/js/jquery.fastbutton.js \
-	blib/lib/Convos/public/js/jquery.fastbutton.js \
-	lib/Convos/public/js/jquery.min.js \
-	blib/lib/Convos/public/js/jquery.min.js \
-	lib/Convos/public/image/logo.svg \
-	blib/lib/Convos/public/image/logo.svg \
-	lib/Convos/templates/event/nick_change.html.ep \
-	blib/lib/Convos/templates/event/nick_change.html.ep \
-	lib/Convos/templates/oembed/youtube.html.ep \
-	blib/lib/Convos/templates/oembed/youtube.html.ep \
-	lib/Convos/public/sass/selectize.scss \
-	blib/lib/Convos/public/sass/selectize.scss \
-	lib/Convos/public/js/globals.js \
-	blib/lib/Convos/public/js/globals.js \
-	lib/Convos/public/image/icon-128.png \
-	blib/lib/Convos/public/image/icon-128.png \
-	lib/Convos/public/packed/convos-e83bfb973589982636a43e2c2994c046.css \
-	blib/lib/Convos/public/packed/convos-e83bfb973589982636a43e2c2994c046.css \
-	lib/Convos/public/js/jquery.hotkeys.min.js \
-	blib/lib/Convos/public/js/jquery.hotkeys.min.js \
 	lib/Convos/public/font/fontawesome-webfont.woff \
 	blib/lib/Convos/public/font/fontawesome-webfont.woff \
-	lib/Convos/Core/Archive.pm \
-	blib/lib/Convos/Core/Archive.pm \
-	lib/Convos/templates/event/whois_channels.html.ep \
-	blib/lib/Convos/templates/event/whois_channels.html.ep \
+	lib/Convos/public/image/logo.png \
+	blib/lib/Convos/public/image/logo.png \
+	lib/Convos/templates/event/rpl_namreply.html.ep \
+	blib/lib/Convos/templates/event/rpl_namreply.html.ep \
+	lib/Convos/public/sass/main.scss \
+	blib/lib/Convos/public/sass/main.scss \
+	lib/Convos/Chat.pm \
+	blib/lib/Convos/Chat.pm \
+	lib/Convos/Archive.pm \
+	blib/lib/Convos/Archive.pm \
+	lib/Convos/public/packed/convos-24520b065f62fbe702d11648f8a1c02f.css \
+	blib/lib/Convos/public/packed/convos-24520b065f62fbe702d11648f8a1c02f.css \
+	lib/Convos/templates/event/connection.html.ep \
+	blib/lib/Convos/templates/event/connection.html.ep \
+	lib/Convos/public/image/icon-196.png \
+	blib/lib/Convos/public/image/icon-196.png \
 	lib/Convos/public/font/fontawesome-webfont.afm \
 	blib/lib/Convos/public/font/fontawesome-webfont.afm \
+	lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
+	blib/lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
+	lib/Convos/public/js/jquery.helpers.js \
+	blib/lib/Convos/public/js/jquery.helpers.js \
+	lib/Convos/Oembed.pm \
+	blib/lib/Convos/Oembed.pm \
+	lib/Convos/public/js/globals.js \
+	blib/lib/Convos/public/js/globals.js \
+	lib/Convos/Core/Connection.pm \
+	blib/lib/Convos/Core/Connection.pm \
+	lib/Convos/templates/oembed/image.html.ep \
+	blib/lib/Convos/templates/oembed/image.html.ep \
+	lib/Convos/templates/event/whois_channels.html.ep \
+	blib/lib/Convos/templates/event/whois_channels.html.ep \
+	lib/Convos/public/js/jquery.hotkeys.min.js \
+	blib/lib/Convos/public/js/jquery.hotkeys.min.js \
+	lib/Convos/public/image/landing-page-example-chat.jpeg \
+	blib/lib/Convos/public/image/landing-page-example-chat.jpeg \
+	lib/Convos/templates/client/view.html.ep \
+	blib/lib/Convos/templates/client/view.html.ep \
+	lib/Convos/Loopback.pm \
+	blib/lib/Convos/Loopback.pm \
+	lib/Convos/public/js/jquery.min.js \
+	blib/lib/Convos/public/js/jquery.min.js \
+	lib/Convos/convos.conf \
+	blib/lib/Convos/convos.conf \
+	lib/Convos.pm \
+	blib/lib/Convos.pm \
+	lib/Convos/templates/event/historic_messages.html.ep \
+	blib/lib/Convos/templates/event/historic_messages.html.ep \
+	lib/Convos/templates/client/notification_list.html.ep \
+	blib/lib/Convos/templates/client/notification_list.html.ep \
+	lib/Convos/templates/index.html.ep \
+	blib/lib/Convos/templates/index.html.ep \
+	lib/Convos/templates/user/login.html.ep \
+	blib/lib/Convos/templates/user/login.html.ep \
+	lib/Convos/templates/event/nick_parted.html.ep \
+	blib/lib/Convos/templates/event/nick_parted.html.ep \
+	lib/Convos/public/convos.manifest \
+	blib/lib/Convos/public/convos.manifest \
+	lib/Convos/public/js/jquery.fastbutton.min.js \
+	blib/lib/Convos/public/js/jquery.fastbutton.min.js \
+	lib/Convos/public/image/help.png \
+	blib/lib/Convos/public/image/help.png \
+	lib/Convos/templates/event/mode.html.ep \
+	blib/lib/Convos/templates/event/mode.html.ep \
+	lib/Convos/Client.pm \
+	blib/lib/Convos/Client.pm \
+	lib/Convos/templates/inc/alert.html.ep \
+	blib/lib/Convos/templates/inc/alert.html.ep \
+	lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
+	blib/lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
+	lib/Convos/public/js/ws-reconnecting.js \
+	blib/lib/Convos/public/js/ws-reconnecting.js \
+	lib/Convos/Command/backend.pm \
+	blib/lib/Convos/Command/backend.pm \
+	lib/Convos/templates/event/whois.html.ep \
+	blib/lib/Convos/templates/event/whois.html.ep \
+	lib/Convos/templates/event/nick_quit.html.ep \
+	blib/lib/Convos/templates/event/nick_quit.html.ep \
+	lib/Convos/public/js/jquery.nanoscroller.min.js \
+	blib/lib/Convos/public/js/jquery.nanoscroller.min.js \
+	lib/Convos/templates/event/server_message.html.ep \
+	blib/lib/Convos/templates/event/server_message.html.ep \
+	lib/Convos/Core.pm \
+	blib/lib/Convos/Core.pm \
+	lib/Convos/Core/Archive.pm \
+	blib/lib/Convos/Core/Archive.pm \
+	lib/Convos/public/js/jquery.pjax.min.js \
+	blib/lib/Convos/public/js/jquery.pjax.min.js \
+	lib/Convos/Core/Util.pm \
+	blib/lib/Convos/Core/Util.pm \
+	lib/Convos/public/js/jquery.pjax.js \
+	blib/lib/Convos/public/js/jquery.pjax.js \
+	lib/Convos/templates/event/action_message.html.ep \
+	blib/lib/Convos/templates/event/action_message.html.ep \
+	lib/Convos/public/js/convos.chat.js \
+	blib/lib/Convos/public/js/convos.chat.js \
+	lib/Convos/templates/event/message.html.ep \
+	blib/lib/Convos/templates/event/message.html.ep \
+	lib/Convos/User.pm \
+	blib/lib/Convos/User.pm \
+	lib/Convos/templates/user/register.html.ep \
+	blib/lib/Convos/templates/user/register.html.ep \
+	lib/Convos/templates/event/topic_by.html.ep \
+	blib/lib/Convos/templates/event/topic_by.html.ep \
+	lib/Convos/public/image/logo.svg \
+	blib/lib/Convos/public/image/logo.svg \
+	lib/Convos/public/sass/selectize.scss \
+	blib/lib/Convos/public/sass/selectize.scss \
+	lib/Convos/public/js/jquery.doubletap.js \
+	blib/lib/Convos/public/js/jquery.doubletap.js \
+	lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
+	blib/lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
+	lib/Convos/templates/event/remove_conversation.html.ep \
+	blib/lib/Convos/templates/event/remove_conversation.html.ep \
+	lib/Convos/public/js/jquery.fastbutton.js \
+	blib/lib/Convos/public/js/jquery.fastbutton.js \
+	lib/Convos/templates/not_found.production.html.ep \
+	blib/lib/Convos/templates/not_found.production.html.ep \
+	lib/Convos/public/js/selectize.min.js \
+	blib/lib/Convos/public/js/selectize.min.js \
+	lib/Convos/templates/client/conversation_list.html.ep \
+	blib/lib/Convos/templates/client/conversation_list.html.ep \
+	lib/Convos/public/font/fontawesome-webfont.ttf \
+	blib/lib/Convos/public/font/fontawesome-webfont.ttf \
+	lib/Convos/templates/client/conversation.html.ep \
+	blib/lib/Convos/templates/client/conversation.html.ep \
+	lib/Convos/templates/event/help.html.ep \
+	blib/lib/Convos/templates/event/help.html.ep \
+	lib/Convos/templates/event/add_conversation.html.ep \
+	blib/lib/Convos/templates/event/add_conversation.html.ep \
+	lib/Convos/public/image/loader-facebook.gif \
+	blib/lib/Convos/public/image/loader-facebook.gif \
+	lib/Convos/Core/Commands.pm \
+	blib/lib/Convos/Core/Commands.pm \
+	lib/Convos/templates/event/user.html.ep \
+	blib/lib/Convos/templates/event/user.html.ep \
+	lib/Convos/templates/user/invite_only.html.ep \
+	blib/lib/Convos/templates/user/invite_only.html.ep \
+	lib/Convos/templates/oembed/youtube.html.ep \
+	blib/lib/Convos/templates/oembed/youtube.html.ep \
+	lib/Convos/public/image/icon-128.png \
+	blib/lib/Convos/public/image/icon-128.png \
+	lib/Convos/templates/empty.html.ep \
+	blib/lib/Convos/templates/empty.html.ep \
+	lib/Convos/public/image/loader-squares-circle.gif \
+	blib/lib/Convos/public/image/loader-squares-circle.gif \
+	lib/Convos/templates/event/nick_change.html.ep \
+	blib/lib/Convos/templates/event/nick_change.html.ep \
+	lib/Convos/public/js/jquery.hotkeys.js \
+	blib/lib/Convos/public/js/jquery.hotkeys.js \
+	lib/Convos/public/packed/convos-671e8d97976e1dbcfbd351eeac7cb5bf.js \
+	blib/lib/Convos/public/packed/convos-671e8d97976e1dbcfbd351eeac7cb5bf.js \
+	lib/Convos/public/favicon.ico \
+	blib/lib/Convos/public/favicon.ico \
 	lib/Convos/templates/layouts/default.html.ep \
 	blib/lib/Convos/templates/layouts/default.html.ep \
 	lib/Convos/templates/event/nick_joined.html.ep \
 	blib/lib/Convos/templates/event/nick_joined.html.ep \
-	lib/Convos/templates/event/welcome.html.ep \
-	blib/lib/Convos/templates/event/welcome.html.ep \
-	lib/Convos/public/font/fontawesome-webfont.ttf \
-	blib/lib/Convos/public/font/fontawesome-webfont.ttf \
-	lib/Convos/public/image/logo.png \
-	blib/lib/Convos/public/image/logo.png \
-	lib/Convos/templates/client/conversation.html.ep \
-	blib/lib/Convos/templates/client/conversation.html.ep \
-	lib/Convos/public/convos.manifest \
-	blib/lib/Convos/public/convos.manifest \
-	lib/Convos/public/favicon.ico \
-	blib/lib/Convos/public/favicon.ico \
-	lib/Convos/templates/event/topic_by.html.ep \
-	blib/lib/Convos/templates/event/topic_by.html.ep \
+	lib/Convos/public/font/fontawesome-webfont.eot \
+	blib/lib/Convos/public/font/fontawesome-webfont.eot \
 	lib/Convos/templates/event/channel_list.html.ep \
 	blib/lib/Convos/templates/event/channel_list.html.ep \
-	lib/Convos/templates/not_found.production.html.ep \
-	blib/lib/Convos/templates/not_found.production.html.ep \
-	lib/Convos/templates/client/conversation_list.html.ep \
-	blib/lib/Convos/templates/client/conversation_list.html.ep \
-	lib/Convos/templates/event/add_conversation.html.ep \
-	blib/lib/Convos/templates/event/add_conversation.html.ep \
-	lib/Convos/public/js/jquery.fastbutton.min.js \
-	blib/lib/Convos/public/js/jquery.fastbutton.min.js \
-	lib/Convos/public/image/loader-squares-circle.gif \
-	blib/lib/Convos/public/image/loader-squares-circle.gif \
-	lib/Convos/public/js/jquery.doubletap.js \
-	blib/lib/Convos/public/js/jquery.doubletap.js \
-	lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
-	blib/lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
-	lib/Convos/Core.pm \
-	blib/lib/Convos/Core.pm \
-	lib/Convos/Core/Commands.pm \
-	blib/lib/Convos/Core/Commands.pm \
-	lib/Convos/Client.pm \
-	blib/lib/Convos/Client.pm \
-	lib/Convos/public/image/help.png \
-	blib/lib/Convos/public/image/help.png \
-	lib/Convos/templates/event/server_message.html.ep \
-	blib/lib/Convos/templates/event/server_message.html.ep \
-	lib/Convos/templates/event/mode.html.ep \
-	blib/lib/Convos/templates/event/mode.html.ep \
-	lib/Convos/Core/Connection.pm \
-	blib/lib/Convos/Core/Connection.pm \
-	lib/Convos/public/js/convos.chat.js \
-	blib/lib/Convos/public/js/convos.chat.js \
-	lib/Convos/public/sass/main.scss \
-	blib/lib/Convos/public/sass/main.scss \
-	lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
-	blib/lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
-	lib/Convos/templates/oembed/image.html.ep \
-	blib/lib/Convos/templates/oembed/image.html.ep \
-	lib/Convos/public/image/icon-196.png \
-	blib/lib/Convos/public/image/icon-196.png \
-	lib/Convos/templates/inc/alert.html.ep \
-	blib/lib/Convos/templates/inc/alert.html.ep \
-	lib/Convos/templates/event/user.html.ep \
-	blib/lib/Convos/templates/event/user.html.ep \
-	lib/Convos/templates/empty.html.ep \
-	blib/lib/Convos/templates/empty.html.ep \
-	lib/Convos/templates/event/remove_conversation.html.ep \
-	blib/lib/Convos/templates/event/remove_conversation.html.ep \
-	lib/Convos/Oembed.pm \
-	blib/lib/Convos/Oembed.pm \
-	lib/Convos/Archive.pm \
-	blib/lib/Convos/Archive.pm \
-	lib/Convos/templates/user/invite_only.html.ep \
-	blib/lib/Convos/templates/user/invite_only.html.ep \
-	lib/Convos/templates/user/login.html.ep \
-	blib/lib/Convos/templates/user/login.html.ep \
-	lib/Convos/templates/user/register.html.ep \
-	blib/lib/Convos/templates/user/register.html.ep
+	lib/Convos/Plugin/Helpers.pm \
+	blib/lib/Convos/Plugin/Helpers.pm
 
 
 # --- MakeMaker platform_constants section:
@@ -524,7 +524,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = Convos
-DISTVNAME = Convos-0.1
+DISTVNAME = Convos-0.1001
 
 
 # --- MakeMaker macro section:
@@ -677,35 +677,35 @@ POD2MAN = $(POD2MAN_EXE)
 
 
 manifypods : pure_all  \
-	lib/Convos/Core/Archive.pm \
-	lib/Convos/Core/Util.pm \
-	lib/Convos/Archive.pm \
-	lib/Convos/Core/Connection.pm \
-	lib/Convos/Loopback.pm \
-	lib/Convos/Core.pm \
-	lib/Convos.pm \
+	lib/Convos/Plugin/Helpers.pm \
 	lib/Convos/Chat.pm \
+	lib/Convos/Archive.pm \
+	lib/Convos/Loopback.pm \
 	lib/Convos/User.pm \
 	lib/Convos/Client.pm \
-	lib/Convos/Plugin/Helpers.pm \
-	lib/Convos/Core/Commands.pm \
+	lib/Convos/Core.pm \
+	lib/Convos/Core/Archive.pm \
+	lib/Convos/Core/Connection.pm \
+	lib/Convos/Oembed.pm \
+	lib/Convos.pm \
+	lib/Convos/Core/Util.pm \
 	lib/Convos/Command/backend.pm \
-	lib/Convos/Oembed.pm
+	lib/Convos/Core/Commands.pm
 	$(NOECHO) $(POD2MAN) --section=3 --perm_rw=$(PERM_RW) \
-	  lib/Convos/Core/Archive.pm $(INST_MAN3DIR)/Convos::Core::Archive.$(MAN3EXT) \
-	  lib/Convos/Core/Util.pm $(INST_MAN3DIR)/Convos::Core::Util.$(MAN3EXT) \
-	  lib/Convos/Archive.pm $(INST_MAN3DIR)/Convos::Archive.$(MAN3EXT) \
-	  lib/Convos/Core/Connection.pm $(INST_MAN3DIR)/Convos::Core::Connection.$(MAN3EXT) \
-	  lib/Convos/Loopback.pm $(INST_MAN3DIR)/Convos::Loopback.$(MAN3EXT) \
-	  lib/Convos/Core.pm $(INST_MAN3DIR)/Convos::Core.$(MAN3EXT) \
-	  lib/Convos.pm $(INST_MAN3DIR)/Convos.$(MAN3EXT) \
+	  lib/Convos/Plugin/Helpers.pm $(INST_MAN3DIR)/Convos::Plugin::Helpers.$(MAN3EXT) \
 	  lib/Convos/Chat.pm $(INST_MAN3DIR)/Convos::Chat.$(MAN3EXT) \
+	  lib/Convos/Archive.pm $(INST_MAN3DIR)/Convos::Archive.$(MAN3EXT) \
+	  lib/Convos/Loopback.pm $(INST_MAN3DIR)/Convos::Loopback.$(MAN3EXT) \
 	  lib/Convos/User.pm $(INST_MAN3DIR)/Convos::User.$(MAN3EXT) \
 	  lib/Convos/Client.pm $(INST_MAN3DIR)/Convos::Client.$(MAN3EXT) \
-	  lib/Convos/Plugin/Helpers.pm $(INST_MAN3DIR)/Convos::Plugin::Helpers.$(MAN3EXT) \
-	  lib/Convos/Core/Commands.pm $(INST_MAN3DIR)/Convos::Core::Commands.$(MAN3EXT) \
+	  lib/Convos/Core.pm $(INST_MAN3DIR)/Convos::Core.$(MAN3EXT) \
+	  lib/Convos/Core/Archive.pm $(INST_MAN3DIR)/Convos::Core::Archive.$(MAN3EXT) \
+	  lib/Convos/Core/Connection.pm $(INST_MAN3DIR)/Convos::Core::Connection.$(MAN3EXT) \
+	  lib/Convos/Oembed.pm $(INST_MAN3DIR)/Convos::Oembed.$(MAN3EXT) \
+	  lib/Convos.pm $(INST_MAN3DIR)/Convos.$(MAN3EXT) \
+	  lib/Convos/Core/Util.pm $(INST_MAN3DIR)/Convos::Core::Util.$(MAN3EXT) \
 	  lib/Convos/Command/backend.pm $(INST_MAN3DIR)/Convos::Command::backend.$(MAN3EXT) \
-	  lib/Convos/Oembed.pm $(INST_MAN3DIR)/Convos::Oembed.$(MAN3EXT) 
+	  lib/Convos/Core/Commands.pm $(INST_MAN3DIR)/Convos::Core::Commands.$(MAN3EXT) 
 
 
 
@@ -748,22 +748,22 @@ clean_subdirs :
 
 clean :: clean_subdirs
 	- $(RM_F) \
-	  perlmain.c *perl.core \
-	  core.[0-9][0-9][0-9] perl.exe \
-	  $(BASEEXT).exp $(BASEEXT).x \
-	  $(INST_ARCHAUTODIR)/extralibs.all blibdirs.ts \
-	  $(INST_ARCHAUTODIR)/extralibs.ld lib$(BASEEXT).def \
-	  MYMETA.json *$(LIB_EXT) \
-	  *$(OBJ_EXT) mon.out \
-	  core.[0-9][0-9][0-9][0-9][0-9] perl \
-	  $(BASEEXT).def pm_to_blib \
-	  $(BOOTSTRAP) $(MAKE_APERL_FILE) \
-	  core.[0-9][0-9][0-9][0-9] $(BASEEXT).bso \
-	  pm_to_blib.ts core.[0-9] \
-	  core.[0-9][0-9] core \
-	  perl$(EXE_EXT) MYMETA.yml \
-	  core.*perl.*.? tmon.out \
-	  so_locations 
+	  $(BASEEXT).def so_locations \
+	  tmon.out core.[0-9][0-9][0-9][0-9][0-9] \
+	  core.*perl.*.? lib$(BASEEXT).def \
+	  $(BOOTSTRAP) pm_to_blib \
+	  core.[0-9][0-9][0-9][0-9] *$(OBJ_EXT) \
+	  core.[0-9] $(BASEEXT).bso \
+	  core MYMETA.yml \
+	  $(INST_ARCHAUTODIR)/extralibs.all $(BASEEXT).exp \
+	  pm_to_blib.ts *perl.core \
+	  mon.out core.[0-9][0-9][0-9] \
+	  blibdirs.ts perlmain.c \
+	  core.[0-9][0-9] perl.exe \
+	  *$(LIB_EXT) $(MAKE_APERL_FILE) \
+	  $(INST_ARCHAUTODIR)/extralibs.ld perl \
+	  MYMETA.json $(BASEEXT).x \
+	  perl$(EXE_EXT) 
 	- $(RM_RF) \
 	  blib 
 	- $(MV) $(FIRST_MAKEFILE) $(MAKEFILE_OLD) $(DEV_NULL)
@@ -778,7 +778,7 @@ realclean_subdirs :
 # Delete temporary files (via clean) and also delete dist files
 realclean purge ::  clean realclean_subdirs
 	- $(RM_F) \
-	  $(MAKEFILE_OLD) $(FIRST_MAKEFILE) 
+	  $(FIRST_MAKEFILE) $(MAKEFILE_OLD) 
 	- $(RM_RF) \
 	  $(DISTVNAME) 
 
@@ -818,7 +818,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '  homepage: https://github.com/Nordaaker/convos' >> META_new.yml
 	$(NOECHO) $(ECHO) '  license: http://www.opensource.org/licenses/artistic-license-2.0' >> META_new.yml
 	$(NOECHO) $(ECHO) '  repository: https://github.com/Nordaaker/convos' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version: 0.1' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version: 0.1001' >> META_new.yml
 	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
 	$(NOECHO) $(ECHO) Generating META.json
 	$(NOECHO) $(ECHO) '{' > META_new.json
@@ -877,7 +877,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '         "url" : "https://github.com/Nordaaker/convos"' >> META_new.json
 	$(NOECHO) $(ECHO) '      }' >> META_new.json
 	$(NOECHO) $(ECHO) '   },' >> META_new.json
-	$(NOECHO) $(ECHO) '   "version" : "0.1"' >> META_new.json
+	$(NOECHO) $(ECHO) '   "version" : "0.1001"' >> META_new.json
 	$(NOECHO) $(ECHO) '}' >> META_new.json
 	-$(NOECHO) $(MV) META_new.json $(DISTVNAME)/META.json
 
@@ -1187,93 +1187,93 @@ ppd :
 
 pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
-	  lib/Convos/public/js/ws-reconnecting.js blib/lib/Convos/public/js/ws-reconnecting.js \
+	  lib/Convos/templates/event/welcome.html.ep blib/lib/Convos/templates/event/welcome.html.ep \
 	  lib/Convos/templates/event/topic.html.ep blib/lib/Convos/templates/event/topic.html.ep \
-	  lib/Convos/public/js/jquery.pjax.min.js blib/lib/Convos/public/js/jquery.pjax.min.js \
-	  lib/Convos/templates/event/whois.html.ep blib/lib/Convos/templates/event/whois.html.ep \
-	  lib/Convos/public/js/jquery.hotkeys.js blib/lib/Convos/public/js/jquery.hotkeys.js \
-	  lib/Convos/public/js/jquery.nanoscroller.min.js blib/lib/Convos/public/js/jquery.nanoscroller.min.js \
-	  lib/Convos/convos.conf blib/lib/Convos/convos.conf \
-	  lib/Convos/public/js/jquery.helpers.js blib/lib/Convos/public/js/jquery.helpers.js \
-	  lib/Convos/public/packed/convos-2e92b48dca79894d76c267531c35cd81.js blib/lib/Convos/public/packed/convos-2e92b48dca79894d76c267531c35cd81.js \
-	  lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc blib/lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
-	  lib/Convos/templates/event/nick_quit.html.ep blib/lib/Convos/templates/event/nick_quit.html.ep \
-	  lib/Convos/public/image/loader-facebook.gif blib/lib/Convos/public/image/loader-facebook.gif \
-	  lib/Convos/public/js/jquery.pjax.js blib/lib/Convos/public/js/jquery.pjax.js \
-	  lib/Convos/Loopback.pm blib/lib/Convos/Loopback.pm \
-	  lib/Convos/templates/event/historic_messages.html.ep blib/lib/Convos/templates/event/historic_messages.html.ep \
-	  lib/Convos.pm blib/lib/Convos.pm \
-	  lib/Convos/templates/event/action_message.html.ep blib/lib/Convos/templates/event/action_message.html.ep \
-	  lib/Convos/templates/event/help.html.ep blib/lib/Convos/templates/event/help.html.ep \
-	  lib/Convos/public/js/selectize.min.js blib/lib/Convos/public/js/selectize.min.js \
-	  lib/Convos/Chat.pm blib/lib/Convos/Chat.pm \
-	  lib/Convos/templates/index.html.ep blib/lib/Convos/templates/index.html.ep \
-	  lib/Convos/Plugin/Helpers.pm blib/lib/Convos/Plugin/Helpers.pm \
-	  lib/Convos/templates/client/view.html.ep blib/lib/Convos/templates/client/view.html.ep \
-	  lib/Convos/Core/Util.pm blib/lib/Convos/Core/Util.pm \
-	  lib/Convos/templates/event/message.html.ep blib/lib/Convos/templates/event/message.html.ep \
-	  lib/Convos/templates/event/rpl_namreply.html.ep blib/lib/Convos/templates/event/rpl_namreply.html.ep \
-	  lib/Convos/public/image/landing-page-example-chat.jpeg blib/lib/Convos/public/image/landing-page-example-chat.jpeg \
-	  lib/Convos/Command/backend.pm blib/lib/Convos/Command/backend.pm \
-	  lib/Convos/templates/event/nick_parted.html.ep blib/lib/Convos/templates/event/nick_parted.html.ep \
-	  lib/Convos/templates/event/connection.html.ep blib/lib/Convos/templates/event/connection.html.ep 
-	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
-	  lib/Convos/public/font/fontawesome-webfont.eot blib/lib/Convos/public/font/fontawesome-webfont.eot \
-	  lib/Convos/User.pm blib/lib/Convos/User.pm \
-	  lib/Convos/templates/client/notification_list.html.ep blib/lib/Convos/templates/client/notification_list.html.ep \
-	  lib/Convos/public/js/jquery.fastbutton.js blib/lib/Convos/public/js/jquery.fastbutton.js \
-	  lib/Convos/public/js/jquery.min.js blib/lib/Convos/public/js/jquery.min.js \
-	  lib/Convos/public/image/logo.svg blib/lib/Convos/public/image/logo.svg \
-	  lib/Convos/templates/event/nick_change.html.ep blib/lib/Convos/templates/event/nick_change.html.ep \
-	  lib/Convos/templates/oembed/youtube.html.ep blib/lib/Convos/templates/oembed/youtube.html.ep \
-	  lib/Convos/public/sass/selectize.scss blib/lib/Convos/public/sass/selectize.scss \
-	  lib/Convos/public/js/globals.js blib/lib/Convos/public/js/globals.js \
-	  lib/Convos/public/image/icon-128.png blib/lib/Convos/public/image/icon-128.png \
-	  lib/Convos/public/packed/convos-e83bfb973589982636a43e2c2994c046.css blib/lib/Convos/public/packed/convos-e83bfb973589982636a43e2c2994c046.css \
-	  lib/Convos/public/js/jquery.hotkeys.min.js blib/lib/Convos/public/js/jquery.hotkeys.min.js \
 	  lib/Convos/public/font/fontawesome-webfont.woff blib/lib/Convos/public/font/fontawesome-webfont.woff \
-	  lib/Convos/Core/Archive.pm blib/lib/Convos/Core/Archive.pm \
-	  lib/Convos/templates/event/whois_channels.html.ep blib/lib/Convos/templates/event/whois_channels.html.ep \
+	  lib/Convos/public/image/logo.png blib/lib/Convos/public/image/logo.png \
+	  lib/Convos/templates/event/rpl_namreply.html.ep blib/lib/Convos/templates/event/rpl_namreply.html.ep \
+	  lib/Convos/public/sass/main.scss blib/lib/Convos/public/sass/main.scss \
+	  lib/Convos/Chat.pm blib/lib/Convos/Chat.pm \
+	  lib/Convos/Archive.pm blib/lib/Convos/Archive.pm \
+	  lib/Convos/public/packed/convos-24520b065f62fbe702d11648f8a1c02f.css blib/lib/Convos/public/packed/convos-24520b065f62fbe702d11648f8a1c02f.css \
+	  lib/Convos/templates/event/connection.html.ep blib/lib/Convos/templates/event/connection.html.ep \
+	  lib/Convos/public/image/icon-196.png blib/lib/Convos/public/image/icon-196.png \
 	  lib/Convos/public/font/fontawesome-webfont.afm blib/lib/Convos/public/font/fontawesome-webfont.afm \
+	  lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc blib/lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
+	  lib/Convos/public/js/jquery.helpers.js blib/lib/Convos/public/js/jquery.helpers.js \
+	  lib/Convos/Oembed.pm blib/lib/Convos/Oembed.pm \
+	  lib/Convos/public/js/globals.js blib/lib/Convos/public/js/globals.js \
+	  lib/Convos/Core/Connection.pm blib/lib/Convos/Core/Connection.pm \
+	  lib/Convos/templates/oembed/image.html.ep blib/lib/Convos/templates/oembed/image.html.ep \
+	  lib/Convos/templates/event/whois_channels.html.ep blib/lib/Convos/templates/event/whois_channels.html.ep \
+	  lib/Convos/public/js/jquery.hotkeys.min.js blib/lib/Convos/public/js/jquery.hotkeys.min.js \
+	  lib/Convos/public/image/landing-page-example-chat.jpeg blib/lib/Convos/public/image/landing-page-example-chat.jpeg \
+	  lib/Convos/templates/client/view.html.ep blib/lib/Convos/templates/client/view.html.ep \
+	  lib/Convos/Loopback.pm blib/lib/Convos/Loopback.pm \
+	  lib/Convos/public/js/jquery.min.js blib/lib/Convos/public/js/jquery.min.js \
+	  lib/Convos/convos.conf blib/lib/Convos/convos.conf \
+	  lib/Convos.pm blib/lib/Convos.pm \
+	  lib/Convos/templates/event/historic_messages.html.ep blib/lib/Convos/templates/event/historic_messages.html.ep \
+	  lib/Convos/templates/client/notification_list.html.ep blib/lib/Convos/templates/client/notification_list.html.ep \
+	  lib/Convos/templates/index.html.ep blib/lib/Convos/templates/index.html.ep \
+	  lib/Convos/templates/user/login.html.ep blib/lib/Convos/templates/user/login.html.ep 
+	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
+	  lib/Convos/templates/event/nick_parted.html.ep blib/lib/Convos/templates/event/nick_parted.html.ep \
+	  lib/Convos/public/convos.manifest blib/lib/Convos/public/convos.manifest \
+	  lib/Convos/public/js/jquery.fastbutton.min.js blib/lib/Convos/public/js/jquery.fastbutton.min.js \
+	  lib/Convos/public/image/help.png blib/lib/Convos/public/image/help.png \
+	  lib/Convos/templates/event/mode.html.ep blib/lib/Convos/templates/event/mode.html.ep \
+	  lib/Convos/Client.pm blib/lib/Convos/Client.pm \
+	  lib/Convos/templates/inc/alert.html.ep blib/lib/Convos/templates/inc/alert.html.ep \
+	  lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc blib/lib/Convos/public/sass/.sass-cache/a951694f82d90dd3c3e0af05ea817ae5f104c7b7/selectize.scssc \
+	  lib/Convos/public/js/ws-reconnecting.js blib/lib/Convos/public/js/ws-reconnecting.js \
+	  lib/Convos/Command/backend.pm blib/lib/Convos/Command/backend.pm \
+	  lib/Convos/templates/event/whois.html.ep blib/lib/Convos/templates/event/whois.html.ep \
+	  lib/Convos/templates/event/nick_quit.html.ep blib/lib/Convos/templates/event/nick_quit.html.ep \
+	  lib/Convos/public/js/jquery.nanoscroller.min.js blib/lib/Convos/public/js/jquery.nanoscroller.min.js \
+	  lib/Convos/templates/event/server_message.html.ep blib/lib/Convos/templates/event/server_message.html.ep \
+	  lib/Convos/Core.pm blib/lib/Convos/Core.pm \
+	  lib/Convos/Core/Archive.pm blib/lib/Convos/Core/Archive.pm \
+	  lib/Convos/public/js/jquery.pjax.min.js blib/lib/Convos/public/js/jquery.pjax.min.js \
+	  lib/Convos/Core/Util.pm blib/lib/Convos/Core/Util.pm \
+	  lib/Convos/public/js/jquery.pjax.js blib/lib/Convos/public/js/jquery.pjax.js \
+	  lib/Convos/templates/event/action_message.html.ep blib/lib/Convos/templates/event/action_message.html.ep \
+	  lib/Convos/public/js/convos.chat.js blib/lib/Convos/public/js/convos.chat.js \
+	  lib/Convos/templates/event/message.html.ep blib/lib/Convos/templates/event/message.html.ep \
+	  lib/Convos/User.pm blib/lib/Convos/User.pm \
+	  lib/Convos/templates/user/register.html.ep blib/lib/Convos/templates/user/register.html.ep \
+	  lib/Convos/templates/event/topic_by.html.ep blib/lib/Convos/templates/event/topic_by.html.ep \
+	  lib/Convos/public/image/logo.svg blib/lib/Convos/public/image/logo.svg \
+	  lib/Convos/public/sass/selectize.scss blib/lib/Convos/public/sass/selectize.scss \
+	  lib/Convos/public/js/jquery.doubletap.js blib/lib/Convos/public/js/jquery.doubletap.js \
+	  lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css blib/lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
+	  lib/Convos/templates/event/remove_conversation.html.ep blib/lib/Convos/templates/event/remove_conversation.html.ep 
+	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
+	  lib/Convos/public/js/jquery.fastbutton.js blib/lib/Convos/public/js/jquery.fastbutton.js \
+	  lib/Convos/templates/not_found.production.html.ep blib/lib/Convos/templates/not_found.production.html.ep \
+	  lib/Convos/public/js/selectize.min.js blib/lib/Convos/public/js/selectize.min.js \
+	  lib/Convos/templates/client/conversation_list.html.ep blib/lib/Convos/templates/client/conversation_list.html.ep \
+	  lib/Convos/public/font/fontawesome-webfont.ttf blib/lib/Convos/public/font/fontawesome-webfont.ttf \
+	  lib/Convos/templates/client/conversation.html.ep blib/lib/Convos/templates/client/conversation.html.ep \
+	  lib/Convos/templates/event/help.html.ep blib/lib/Convos/templates/event/help.html.ep \
+	  lib/Convos/templates/event/add_conversation.html.ep blib/lib/Convos/templates/event/add_conversation.html.ep \
+	  lib/Convos/public/image/loader-facebook.gif blib/lib/Convos/public/image/loader-facebook.gif \
+	  lib/Convos/Core/Commands.pm blib/lib/Convos/Core/Commands.pm \
+	  lib/Convos/templates/event/user.html.ep blib/lib/Convos/templates/event/user.html.ep \
+	  lib/Convos/templates/user/invite_only.html.ep blib/lib/Convos/templates/user/invite_only.html.ep \
+	  lib/Convos/templates/oembed/youtube.html.ep blib/lib/Convos/templates/oembed/youtube.html.ep \
+	  lib/Convos/public/image/icon-128.png blib/lib/Convos/public/image/icon-128.png \
+	  lib/Convos/templates/empty.html.ep blib/lib/Convos/templates/empty.html.ep \
+	  lib/Convos/public/image/loader-squares-circle.gif blib/lib/Convos/public/image/loader-squares-circle.gif \
+	  lib/Convos/templates/event/nick_change.html.ep blib/lib/Convos/templates/event/nick_change.html.ep \
+	  lib/Convos/public/js/jquery.hotkeys.js blib/lib/Convos/public/js/jquery.hotkeys.js \
+	  lib/Convos/public/packed/convos-671e8d97976e1dbcfbd351eeac7cb5bf.js blib/lib/Convos/public/packed/convos-671e8d97976e1dbcfbd351eeac7cb5bf.js \
+	  lib/Convos/public/favicon.ico blib/lib/Convos/public/favicon.ico \
 	  lib/Convos/templates/layouts/default.html.ep blib/lib/Convos/templates/layouts/default.html.ep \
 	  lib/Convos/templates/event/nick_joined.html.ep blib/lib/Convos/templates/event/nick_joined.html.ep \
-	  lib/Convos/templates/event/welcome.html.ep blib/lib/Convos/templates/event/welcome.html.ep \
-	  lib/Convos/public/font/fontawesome-webfont.ttf blib/lib/Convos/public/font/fontawesome-webfont.ttf \
-	  lib/Convos/public/image/logo.png blib/lib/Convos/public/image/logo.png \
-	  lib/Convos/templates/client/conversation.html.ep blib/lib/Convos/templates/client/conversation.html.ep \
-	  lib/Convos/public/convos.manifest blib/lib/Convos/public/convos.manifest \
-	  lib/Convos/public/favicon.ico blib/lib/Convos/public/favicon.ico \
-	  lib/Convos/templates/event/topic_by.html.ep blib/lib/Convos/templates/event/topic_by.html.ep \
+	  lib/Convos/public/font/fontawesome-webfont.eot blib/lib/Convos/public/font/fontawesome-webfont.eot \
 	  lib/Convos/templates/event/channel_list.html.ep blib/lib/Convos/templates/event/channel_list.html.ep \
-	  lib/Convos/templates/not_found.production.html.ep blib/lib/Convos/templates/not_found.production.html.ep \
-	  lib/Convos/templates/client/conversation_list.html.ep blib/lib/Convos/templates/client/conversation_list.html.ep 
-	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
-	  lib/Convos/templates/event/add_conversation.html.ep blib/lib/Convos/templates/event/add_conversation.html.ep \
-	  lib/Convos/public/js/jquery.fastbutton.min.js blib/lib/Convos/public/js/jquery.fastbutton.min.js \
-	  lib/Convos/public/image/loader-squares-circle.gif blib/lib/Convos/public/image/loader-squares-circle.gif \
-	  lib/Convos/public/js/jquery.doubletap.js blib/lib/Convos/public/js/jquery.doubletap.js \
-	  lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc blib/lib/Convos/public/sass/.sass-cache/49c3749e8d67888e6efa4aaa046500d4537c7173/selectize.scssc \
-	  lib/Convos/Core.pm blib/lib/Convos/Core.pm \
-	  lib/Convos/Core/Commands.pm blib/lib/Convos/Core/Commands.pm \
-	  lib/Convos/Client.pm blib/lib/Convos/Client.pm \
-	  lib/Convos/public/image/help.png blib/lib/Convos/public/image/help.png \
-	  lib/Convos/templates/event/server_message.html.ep blib/lib/Convos/templates/event/server_message.html.ep \
-	  lib/Convos/templates/event/mode.html.ep blib/lib/Convos/templates/event/mode.html.ep \
-	  lib/Convos/Core/Connection.pm blib/lib/Convos/Core/Connection.pm \
-	  lib/Convos/public/js/convos.chat.js blib/lib/Convos/public/js/convos.chat.js \
-	  lib/Convos/public/sass/main.scss blib/lib/Convos/public/sass/main.scss \
-	  lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css blib/lib/Convos/public/packed/main-24520b065f62fbe702d11648f8a1c02f.css \
-	  lib/Convos/templates/oembed/image.html.ep blib/lib/Convos/templates/oembed/image.html.ep \
-	  lib/Convos/public/image/icon-196.png blib/lib/Convos/public/image/icon-196.png \
-	  lib/Convos/templates/inc/alert.html.ep blib/lib/Convos/templates/inc/alert.html.ep \
-	  lib/Convos/templates/event/user.html.ep blib/lib/Convos/templates/event/user.html.ep \
-	  lib/Convos/templates/empty.html.ep blib/lib/Convos/templates/empty.html.ep \
-	  lib/Convos/templates/event/remove_conversation.html.ep blib/lib/Convos/templates/event/remove_conversation.html.ep \
-	  lib/Convos/Oembed.pm blib/lib/Convos/Oembed.pm \
-	  lib/Convos/Archive.pm blib/lib/Convos/Archive.pm \
-	  lib/Convos/templates/user/invite_only.html.ep blib/lib/Convos/templates/user/invite_only.html.ep \
-	  lib/Convos/templates/user/login.html.ep blib/lib/Convos/templates/user/login.html.ep \
-	  lib/Convos/templates/user/register.html.ep blib/lib/Convos/templates/user/register.html.ep 
+	  lib/Convos/Plugin/Helpers.pm blib/lib/Convos/Plugin/Helpers.pm 
 	$(NOECHO) $(TOUCH) pm_to_blib
 
 
