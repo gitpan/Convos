@@ -6,7 +6,7 @@ Convos - Multiuser IRC proxy with web interface
 
 =head1 VERSION
 
-0.1002
+0.2001
 
 =head1 DESCRIPTION
 
@@ -135,7 +135,7 @@ use File::Basename qw( dirname );
 use Convos::Core;
 use Convos::Core::Util ();
 
-our $VERSION = '0.1002';
+our $VERSION = '0.2001';
 $ENV{CONVOS_BACKEND_REV} ||= 0;
 
 =head1 ATTRIBUTES
@@ -192,7 +192,7 @@ sub startup {
   $self->plugin('Convos::Plugin::Helpers');
   $self->secret($config->{secret} || die '"secret" is required in config file');
   $self->sessions->default_expiration(86400 * 30);
-  $self->defaults(layout => 'default', logged_in => 0, VERSION => time, body_class => 'default');
+  $self->defaults(layout => 'default', logged_in => 0, body_class => 'default');
 
   $self->plugin('AssetPack' => { rebuild => $config->{AssetPack}{rebuild} // 1 });
   $self->asset('convos.css', '/sass/main.scss');
@@ -213,12 +213,10 @@ sub startup {
   # Normal route to controller
   my $r = $self->routes;
   $r->get('/')->to('client#route')->name('index');
-  $r->get('/login')->to('user#login')->name('login');
-  $r->post('/login')->to('user#login');
-  $r->get('/register')->to('user#register')->name('register');
-  $r->post('/register')->to('user#register');
-  $r->get('/register/:invite')->to('user#register');
-  $r->post('/register/:invite')->to('user#register');
+  $r->get('/login')->to('user#login', body_class => 'tactile')->name('login');
+  $r->post('/login')->to('user#login', body_class => 'tactile');
+  $r->get('/register/:invite', { invite => '' })->to('user#register', body_class => 'tactile')->name('register');;
+  $r->post('/register/:invite', { invite => '' })->to('user#register', body_class => 'tactile');
   $r->get('/logout')->to('user#logout')->name('logout');
 
   my $private_r = $r->bridge('/')->to('user#auth');
@@ -238,13 +236,6 @@ sub startup {
   $host_r->post('/settings/edit')->to('user#edit_connection')->name('connection.edit');
   $host_r->get('/*target')->to('client#view')->name('view');
   $host_r->get('/')->to('client#view')->name('view.server');
-
-  $self->hook(
-    before_dispatch => sub {
-      my $c = shift;
-      $c->stash(errors => {});    # this need to be set up each time, since it's a ref
-    }
-  );
 
   if($config->{backend}{embedded}) {
     Mojo::IOLoop->timer(0, sub {

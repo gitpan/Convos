@@ -1,7 +1,7 @@
 {
    "abstract" : "Multiuser IRC proxy with web interface",
    "author" : [
-      "Jan Henning Thorsen <jhthorsen@cpan.org>"
+      "Jan Henning Thorsen <jhthorsen\@cpan.org>"
    ],
    "dynamic_config" : 1,
    "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921",
@@ -22,14 +22,7 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "IRC::Utils" : "0.12",
-            "Mojo::IRC" : "0.0303",
-            "Mojo::Redis" : "0.992",
-            "Mojolicious" : "4.6",
-            "Mojolicious::Plugin::AssetPack" : "0.0502",
-            "Parse::IRC" : "1.18",
-            "Time::Piece" : "1.2",
-            "Unicode::UTF8" : "0.58"
+            "Test::More" : "0.90"
          }
       },
       "configure" : {
@@ -38,7 +31,16 @@
          }
       },
       "runtime" : {
-         "requires" : {}
+         "requires" : {
+            "IRC::Utils" : "0.12",
+            "Mojo::IRC" : "0.0303",
+            "Mojo::Redis" : "0.992",
+            "Mojolicious" : "4.6",
+            "Mojolicious::Plugin::AssetPack" : "0.06",
+            "Parse::IRC" : "1.18",
+            "Time::Piece" : "1.2",
+            "Unicode::UTF8" : "0.58"
+         }
       }
    },
    "release_status" : "stable",
@@ -54,5 +56,5 @@
          "url" : "https://github.com/Nordaaker/convos"
       }
    },
-   "version" : "0.1002"
+   "version" : "0.2001"
 }

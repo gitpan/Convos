@@ -1,20 +1,23 @@
 use ExtUtils::MakeMaker;
+use Cwd ();
+
+open my $CPANFILE, '<', Cwd::abs_path('cpanfile') or die "cpanfile: $!";
+eval <<"CPANFILE_EVAL" or die $@;
+package JAIL;
+sub requires { \$main::BUILD_REQUIRES{\$_[0]} = \$_[1] }
+@{[<$CPANFILE>]}
+1;
+CPANFILE_EVAL
+
 WriteMakefile(
   NAME => 'Convos',
   ABSTRACT_FROM => 'lib/Convos.pm',
   VERSION_FROM => 'lib/Convos.pm',
-  AUTHOR => 'Jan Henning Thorsen <jhthorsen@cpan.org>',
+  AUTHOR => 'Jan Henning Thorsen <jhthorsen\@cpan.org>',
   LICENSE => 'artistic_2',
-  PREREQ_PM => {},
+  PREREQ_PM => \%main::BUILD_REQUIRES,
   BUILD_REQUIRES => {
-    'IRC::Utils' => '0.12',
-    'Mojo::IRC' => '0.0303',
-    'Mojo::Redis' => '0.992',
-    'Mojolicious' => '4.6',
-    'Mojolicious::Plugin::AssetPack' => '0.0502',
-    'Parse::IRC' => '1.18',
-    'Time::Piece' => '1.2',
-    'Unicode::UTF8' => '0.58'
+    'Test::More' => '0.90',
   },
   META_MERGE => {
     resources => {
@@ -27,3 +30,4 @@ WriteMakefile(
   test => { TESTS => 't/*.t' },
   EXE_FILES => ['script/convos'],
 );
+ 
