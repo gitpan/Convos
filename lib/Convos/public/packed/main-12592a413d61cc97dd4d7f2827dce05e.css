@@ -247,9 +247,10 @@ form {
   form input[readonly] {
     background: #f6f6f6;
     color: #666; }
-  form .selectize-input, form .selectize-control.single .selectize-input.focus, form input {
+  form .selectize-input, form .selectize-control.single .selectize-input.focus, form input, form select {
+    background: #fff;
     padding: 4px;
-    font-size: 1.2em;
+    font-size: 1.1em;
     outline: none;
     border: 2px solid #ccc;
     width: 290px;
@@ -262,10 +263,8 @@ form {
     padding: 2px; }
   form .selectize-input.focus, form input:focus {
     border: 2px solid #a6a6a6; }
-  form div.error .selectize-input, form div.error .selectize-control.single .selectize-input.focus, form div.error input {
-    border-color: #e66; }
-  form div.error p.help {
-    color: #f44; }
+  form input.field-with-error, form select.field-with-error {
+    border-color: #d5000d; }
   form div.actions {
     margin-top: 2em;
     clear: left;
@@ -275,9 +274,54 @@ form {
     font-size: 0.9em;
     margin-top: 0.1em; }
 
+form.horizontal label {
+  margin-top: 4px;
+  float: left;
+  width: 8em; }
+form.horizontal div.form-group {
+  padding: 4px 0;
+  clear: left; }
+form.horizontal div.actions {
+  margin-top: 1em;
+  margin-left: 8em; }
+form.horizontal p.help, form.horizontal p.error {
+  font-size: 0.9em;
+  margin: 2px 0 0 8.88889em; }
+form.horizontal p.error {
+  background: #ffa2a8;
+  width: 290px;
+  margin-top: -3px;
+  padding: 4px;
+  border: 2px solid #d5000d;
+  border-top: 0;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px; }
+form.horizontal input.field-with-error, form.horizontal select.field-with-error {
+  border-bottom: 0; }
+@media (max-width: 400px) {
+  form.horizontal label {
+    float: none;
+    width: 100%; }
+  form.horizontal div.actions, form.horizontal p.help, form.horizontal p.error {
+    margin-left: 0; } }
+
+form.predefined .help, form.predefined div.password, form.predefined div.tls {
+  display: none; }
+form.predefined .selectize-control .selectize-input > div, form.predefined .selectize-input, form.predefined input, form.predefined select {
+  background: transparent;
+  border: 0; }
+form.predefined a.edit-mode {
+  padding-left: 4px;
+  color: #595959;
+  text-decoration: none; }
+
+form.edit-mode a.edit-mode {
+  display: none; }
+
 button, .button {
+  background: #fafafa;
   color: #222;
-  background: #e6e6e6;
   font-size: 15px;
   text-decoration: none;
   padding: 3px 6px;
@@ -799,7 +843,7 @@ div.messages {
     color: #333;
     font-style: italic; }
   div.messages li.message-error, div.messages li.server-message.error {
-    background: #fbb; }
+    background: #ffa2a8; }
   div.messages li.nick-change, div.messages li.nick-joined, div.messages li.nick-parted, div.messages li.nick-quit, div.messages li.notice, div.messages li.topic, div.messages li.whois {
     background-color: #f9f7fa;
     color: #888; }
@@ -886,20 +930,25 @@ body.tactile {
  * Landing page
  */
 .landing-page {
-  margin: auto;
-  padding-top: 1em;
-  width: 680px; }
-  .landing-page h1 .logo {
-    text-indent: -1000px;
-    display: block;
-    height: 55px;
-    width: 300px;
-    background: url("/image/logo.png") no-repeat top left;
-    background: none, url("/image/logo.svg") no-repeat top left; }
-  .landing-page h1 small {
-    display: block;
-    font-weight: normal;
-    color: #999; }
+  background: transparent url(../image/tactile-highlight-bg.jpg) 50% 0 no-repeat;
+  min-height: 595px; }
+  .landing-page .row {
+    margin: auto;
+    padding-top: 1em;
+    width: 680px; }
+  .landing-page h1 {
+    margin-bottom: 0; }
+    .landing-page h1 .logo {
+      text-indent: -1000px;
+      display: block;
+      height: 55px;
+      width: 300px;
+      background: url("/image/logo.png") no-repeat top left;
+      background: none, url("/image/logo.svg") no-repeat top left; }
+    .landing-page h1 small {
+      display: block;
+      font-weight: normal;
+      color: #999; }
   .landing-page h2.login-register {
     font-size: 1.1em; }
 
@@ -942,15 +991,14 @@ div.footer {
       border-right: 0;
       border-left: 0; }
 
-  .landing-page {
+  .landing-page img {
+    margin: 2em 0; }
+  .landing-page nav, .landing-page .login, .landing-page .register, .landing-page .about {
     width: 100%; }
-    .landing-page img {
-      margin: 2em 0; }
-    .landing-page nav, .landing-page .login, .landing-page .register, .landing-page .about {
-      width: 100%; }
-    .landing-page .row {
-      padding-left: 10px;
-      padding-right: 10px; }
+  .landing-page .row {
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px; }
 
   dl dt {
     float: none;

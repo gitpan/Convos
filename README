@@ -2,7 +2,7 @@ NAME
     Convos - Multiuser IRC proxy with web interface
 
 VERSION
-    0.2001
+    0.3001
 
 DESCRIPTION
     Convos is to a multi-user IRC Proxy, that also provides a easy to use
@@ -57,24 +57,6 @@ DESCRIPTION
     <https://github.com/Nordaaker/convos/blob/release/convos.conf> as config
     file template.
 
-  Wanted features
-    *   Per client state (track seen messages).
-
-    *   Web Notifications that integrate with notification center.
-
-    *   Fast JS Web Interface with async communication (Web Sockets)
-
-    *   Use HTML5 pushstate to be restful and fall back to page reloads for
-        fully functioning non-async lite version.
-
-    *   Monospaced to be compatible with old school IRC clients/ascii
-
-    *   Rich media preview for links.
-
-    *   Facebook Connect for registration/Avatars.
-
-    *   Useful Archive search/viewer
-
   Architecture principles
     *   Keep the JS simple and manageable
 
@@ -83,6 +65,19 @@ DESCRIPTION
     *   Archive logs in plain text format, use ack to search them.
 
     *   Bootstrap-based user interface
+
+RESOURCES
+    *   Homepage: <http://convos.by>
+
+    *   Project page: <https://github.com/Nordaaker/convos>
+
+    *   Icon:
+        <https://raw.github.com/Nordaaker/convos/master/public/image/icon.sv
+        g>
+
+    *   Logo:
+        <https://raw.github.com/Nordaaker/convos/master/public/image/logo.sv
+        g>
 
 SEE ALSO
     *   Convos::Archive
@@ -105,8 +100,15 @@ ATTRIBUTES
   archive
     Holds a Convos::Core::Archive object.
 
+  cache
+    Holds a Mojolicious::Static object pointing to a cache dir. The
+    directory is "/tmp/convos" by default.
+
   core
     Holds a Convos::Core object.
+
+  backend_pid
+    The pid for the backend process, if running embedded.
 
 METHODS
   startup
