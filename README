@@ -2,7 +2,7 @@ NAME
     Convos - Multiuser IRC proxy with web interface
 
 VERSION
-    0.3005
+    0.4
 
 DESCRIPTION
     Convos is to a multi-user IRC Proxy, that also provides a easy to use
@@ -66,6 +66,31 @@ DESCRIPTION
 
     *   Bootstrap-based user interface
 
+  Environment
+    Convos can be configured with the following environment variables:
+
+    *   CONVOS_BACKEND_EMBEDDED=1
+
+        Set CONVOS_MANUAL_BACKEND to a true value if you're starting Convos
+        with "morbo" and want to run the backend embedded.
+
+    *   CONVOS_DEBUG=1
+
+        Set CONVOS_DEBUG for extra debug output to STDERR.
+
+    *   CONVOS_MANUAL_BACKEND=1
+
+        Disable the frontend from starting the backend.
+
+    *   CONVOS_PING_INTERVAL=30
+
+        Set how often to send "keep-alive" through the web socket. Default
+        is every 30 second.
+
+    *   MOJO_IRC_DEBUG=1
+
+        Set MOJO_IRC_DEBUG for extra IRC debug output to STDERR.
+
 RESOURCES
     *   Homepage: <http://convos.by>
 
@@ -107,8 +132,8 @@ ATTRIBUTES
   core
     Holds a Convos::Core object.
 
-  backend_pid
-    The pid for the backend process, if running embedded.
+  upgrader
+    Holds a Convos::Upgrader object.
 
 METHODS
   startup

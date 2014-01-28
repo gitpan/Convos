@@ -35,10 +35,11 @@
             "IRC::Utils" : "0.12",
             "Mojo::IRC" : "0.0303",
             "Mojo::Redis" : "0.992",
-            "Mojolicious" : "4.6",
+            "Mojolicious" : "4.63",
             "Mojolicious::Plugin::AssetPack" : "0.06",
             "Parse::IRC" : "1.18",
             "Time::Piece" : "1.2",
+            "URI::Find" : "20111103",
             "Unicode::UTF8" : "0.58"
          }
       }
@@ -56,5 +57,5 @@
          "url" : "https://github.com/Nordaaker/convos"
       }
    },
-   "version" : "0.3005"
+   "version" : "0.4"
 }
