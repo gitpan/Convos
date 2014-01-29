@@ -1,7 +1,7 @@
 ---
 abstract: 'Multiuser IRC proxy with web interface'
 author:
-  - 'Jan Henning Thorsen <jhthorsen\@cpan.org>'
+  - 'Jan Henning Thorsen <jhthorsen@cpan.org>'
 build_requires:
   Test::More: 0.90
 configure_requires:
@@ -32,4 +32,4 @@ resources:
   homepage: http://convos.by
   license: http://www.opensource.org/licenses/artistic-license-2.0
   repository: https://github.com/Nordaaker/convos
-version: 0.4001
+version: 0.4002
