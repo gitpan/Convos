@@ -39,8 +39,8 @@ L<Mojo::IRC/rpl_endofmotd>, L<Mojo::IRC/rpl_welcome> and L<Mojo::IRC/error>.
 =item * Other events
 
 L</irc_rpl_welcome>, L</irc_rpl_myinfo>, L</irc_join>, L</irc_part>,
-L</irc_rpl_namreply>, L</irc_err_nosuchchannel> L</irc_err_notonchannel>
-L</irc_err_bannedfromchan>, l</irc_error> and L</irc_quit>.
+L</irc_rpl_namreply>, L</err_nosuchchannel>, L</err_notonchannel>, L</err_nosuchnick>
+L</err_bannedfromchan>, l</irc_error> and L</irc_quit>.
 
 =back
 
@@ -63,17 +63,15 @@ use constant UNITTEST => $INC{'Test/More.pm'} ? 1 : 0;
 
 =head2 name
 
-=cut
+Name of the connection. Example: "freenode", "magnet" or "efnet".
 
-has name => '';
+=head2 log
+
+Holds a L<Mojo::Log> object.
 
 =head2 login
 
 The username of the owner.
-
-=cut
-
-has login => 0;
 
 =head2 redis
 
@@ -81,27 +79,23 @@ Holds a L<Mojo::Redis> object.
 
 =cut
 
+has name  => '';
+has log   => sub { Mojo::Log->new };
+has login => 0;
 has redis => sub { Mojo::Redis->new };
 
-=head2 log
-
-Holds a L<Mojo::Log> object.
-
-=cut
-
-has log => sub { Mojo::Log->new };
-
-my @ADD_MESSAGE_EVENTS        = qw/ irc_privmsg /;
+my @ADD_MESSAGE_EVENTS        = qw/ irc_privmsg ctcp_action /;
 my @ADD_SERVER_MESSAGE_EVENTS = qw/
   irc_rpl_yourhost irc_rpl_motdstart irc_rpl_motd irc_rpl_endofmotd
   irc_rpl_welcome rpl_luserclient
   /;
 my @OTHER_EVENTS = qw/
   irc_rpl_welcome irc_rpl_myinfo irc_join irc_nick irc_part irc_rpl_namreply
-  irc_error irc_rpl_whoisuser irc_rpl_whoischannels irc_rpl_topic irc_topic
-  irc_rpl_topicwhotime irc_rpl_notopic irc_err_nosuchchannel
-  irc_err_notonchannel irc_err_bannedfromchan irc_rpl_liststart irc_rpl_list
-  irc_rpl_listend irc_mode irc_quit
+  irc_rpl_whoisuser irc_rpl_whoisidle irc_rpl_whoischannels irc_rpl_endofwhois
+  irc_rpl_topic irc_topic
+  irc_rpl_topicwhotime irc_rpl_notopic err_nosuchchannel err_nosuchnick
+  err_notonchannel err_bannedfromchan irc_rpl_liststart irc_rpl_list
+  irc_rpl_listend irc_mode irc_quit irc_error
   /;
 
 has _irc => sub {
@@ -114,6 +108,7 @@ has _irc => sub {
   }
   else {
     $irc = Mojo::IRC->new(debug_key => join ':', $self->login, $self->name);
+    $irc->parser(Parse::IRC->new(ctcp => 1));
   }
 
   Scalar::Util::weaken($self);
@@ -133,7 +128,7 @@ has _irc => sub {
       else {
         $data = {
           status  => 500,
-          message => "Disconnected from @{[$irc->name]}. Attempting reconnect in @{[$self->_reconnect_in]} seconds."
+          message => "Disconnected from @{[$self->name]}. Attempting reconnect in @{[$self->_reconnect_in]} seconds."
         };
         $self->_publish_and_save(server_message => $data);
         $self->_add_convos_message($data);
@@ -144,10 +139,11 @@ has _irc => sub {
   );
   $irc->on(
     error => sub {
-      my $irc  = shift;
+      my ($irc, $err) = @_;
       my $data = {
-        status  => 500,
-        message => "Connection to @{[$irc->name]} failed. Attempting reconnect in @{[$self->_reconnect_in]} seconds."
+        status => 500,
+        message =>
+          "Connection to @{[$irc->name]} failed. Attempting reconnect in @{[$self->_reconnect_in]} seconds. ($err)",
       };
       $self->{stop} and return $self->redis->hset($self->{path}, state => 'error');
       $self->_publish_and_save(server_message => $data);
@@ -164,7 +160,7 @@ has _irc => sub {
     $irc->on($event => sub { $self->add_server_message($_[1]) });
   }
   for my $event (@OTHER_EVENTS) {
-    $irc->on($event => sub { $self->$event($_[1]) });
+    $irc->on($event => sub { $_[1]->{handled}++ or $self->$event($_[1]) });
   }
 
   $irc;
@@ -335,7 +331,7 @@ input. It will use L</name> to filter out the right list.
 sub channels_from_conversations {
   my ($self, $conversations) = @_;
 
-  map { $_->[1] } grep { $_->[0] eq $self->name and $_->[1] =~ /^[#&]/ } map { [id_as $_ ] } @{$conversations || []};
+  map { lc $_->[1] } grep { $_->[0] eq $self->name and $_->[1] =~ /^[#&]/ } map { [id_as $_ ] } @{$conversations || []};
 }
 
 =head2 add_server_message
@@ -377,7 +373,7 @@ sub add_message {
 
   @$data{qw/ nick user host /} = IRC::Utils::parse_user($message->{prefix}) if $message->{prefix};
   $data->{target} = lc($is_private_message ? $data->{nick} : $message->{params}[0]);
-  $data->{host} ||= Sys::Hostname::hostname;    # should never happen
+  $data->{host} ||= 'localhost';
   $data->{user} ||= $self->_irc->user;
 
   if ($data->{nick} && $data->{nick} ne $current_nick) {
@@ -389,7 +385,13 @@ sub add_message {
     }
   }
 
-  $self->_publish_and_save($data->{message} =~ s/\x{1}ACTION (.*)\x{1}/$1/ ? 'action_message' : 'message', $data,);
+  # need to take care of when the current user also writes /me...
+  # this is not yet tested, since i have no time right now :(
+  if ($data->{message} =~ s/\x{1}ACTION (.*)\x{1}/$1/) {
+    $message->{command} = "CTCP_ACTION";
+  }
+
+  $self->_publish_and_save($message->{command} eq 'CTCP_ACTION' ? 'action_message' : 'message', $data);
 }
 
 sub _add_conversation {
@@ -452,23 +454,53 @@ sub irc_rpl_welcome {
   );
 }
 
+=head2 irc_rpl_endofwhois
+
+Use data from L</irc_rpl_whoisidle>, L</irc_rpl_whoisuser> and
+L</irc_rpl_whoischannels>.
+
+=cut
+
+sub irc_rpl_endofwhois {
+  my ($self, $message) = @_;
+  my $nick = $message->{params}[1];
+  my $whois = delete $self->{whois}{$nick} || {};
+
+  $whois->{channels} ||= [];
+  $whois->{idle}     ||= 0;
+  $whois->{realname} ||= '';
+  $whois->{user}     ||= '';
+  $whois->{nick} = $nick;
+  $self->_publish(whois => $whois) if $whois->{host};
+}
+
+=head2 irc_rpl_whoisidle
+
+Store idle info internally. See L</irc_rpl_endofwhois>.
+
+=cut
+
+sub irc_rpl_whoisidle {
+  my ($self, $message) = @_;
+  my $nick = $message->{params}[1];
+
+  $self->{whois}{$nick}{idle} = $message->{params}[2] || 0;
+}
+
 =head2 irc_rpl_whoisuser
 
-Reply with user info
+Store user info internally. See L</irc_rpl_endofwhois>.
 
 =cut
 
 sub irc_rpl_whoisuser {
   my ($self, $message) = @_;
+  my $params = $message->{params};
+  my $nick   = $params->[1];
 
-  $self->_publish(
-    whois => {
-      nick     => $message->{params}[1],
-      user     => $message->{params}[2],
-      host     => $message->{params}[3],
-      realname => $message->{params}[5],
-    }
-  );
+  $self->{whois}{$nick}{host}     = $params->[3];
+  $self->{whois}{$nick}{realname} = $params->[5];
+  $self->{whois}{$nick}{user}     = $params->[2];
 }
 
 =head2 irc_rpl_whoischannels
@@ -479,9 +511,9 @@ Reply with user channels
 
 sub irc_rpl_whoischannels {
   my ($self, $message) = @_;
+  my $nick = $message->{params}[1];
 
-  $self->_publish(
-    whois_channels => {nick => $message->{params}[1], channels => [sort split ' ', $message->{params}[2] || ''],},);
+  push @{$self->{whois}{$nick}{channels}}, split ' ', $message->{params}[2] || '';
 }
 
 =head2 irc_rpl_notopic
@@ -492,8 +524,10 @@ sub irc_rpl_whoischannels {
 
 sub irc_rpl_notopic {
   my ($self, $message) = @_;
+  my $target = lc $message->{params}[1];
 
-  $self->_publish(topic => {topic => '', target => $message->{params}[1]});
+  $self->redis->hset("$self->{path}:$target", topic => '');
+  $self->_publish(topic => {topic => '', target => $target});
 }
 
 =head2 irc_rpl_topic
@@ -504,8 +538,11 @@ Reply with topic
 
 sub irc_rpl_topic {
   my ($self, $message) = @_;
+  my $target = lc $message->{params}[1];
+  my $topic  = $message->{params}[2];
 
-  $self->_publish(topic => {topic => $message->{params}[2], target => $message->{params}[1]});
+  $self->redis->hset("$self->{path}:$target", topic => $topic);
+  $self->_publish(topic => {topic => $topic, target => $target});
 }
 
 =head2 irc_topic
@@ -516,8 +553,11 @@ sub irc_rpl_topic {
 
 sub irc_topic {
   my ($self, $message) = @_;
+  my $target = lc $message->{params}[0];
+  my $topic  = $message->{params}[1];
 
-  $self->_publish(topic => {topic => $message->{params}[1], target => $message->{params}[0]});
+  $self->redis->hset("$self->{path}:$target", topic => $topic);
+  $self->_publish(topic => {topic => $topic, target => $target});
 }
 
 =head2 irc_rpl_topicwhotime
@@ -529,8 +569,8 @@ Reply with who and when for topic change
 sub irc_rpl_topicwhotime {
   my ($self, $message) = @_;
 
-  $self->_publish(
-    topic_by => {timestamp => $message->{params}[3], nick => $message->{params}[2], target => $message->{params}[1],});
+  $self->_publish(topic_by =>
+      {timestamp => $message->{params}[3], nick => $message->{params}[2], target => lc $message->{params}[1],});
 }
 
 =head2 irc_rpl_myinfo
@@ -557,11 +597,14 @@ See L<Mojo::IRC/irc_join>.
 
 sub irc_join {
   my ($self, $message) = @_;
-  my ($nick) = IRC::Utils::parse_user($message->{prefix});
-  my $channel = $message->{params}[0];
+  my ($nick, $user, $host) = IRC::Utils::parse_user($message->{prefix});
+  my $channel = lc $message->{params}[0];
 
   if ($nick eq $self->_irc->nick) {
+    $self->redis->hset("$self->{path}:$channel", topic => '');
+    $self->redis->hset("convos:host2convos" => $host => 'loopback');
     $self->_publish(add_conversation => {target => $channel});
+    $self->_irc->write(TOPIC => $channel);    # fetch topic for channel
   }
   else {
     $self->_publish(nick_joined => {nick => $nick, target => $channel});
@@ -612,7 +655,7 @@ sub irc_quit {
 sub irc_part {
   my ($self, $message) = @_;
   my ($nick) = IRC::Utils::parse_user($message->{prefix});
-  my $channel = $message->{params}[0];
+  my $channel = lc $message->{params}[0];
 
   Scalar::Util::weaken($self);
   if ($nick eq $self->_irc->nick) {
@@ -631,15 +674,15 @@ sub irc_part {
   }
 }
 
-=head2 irc_err_bannedfromchan
+=head2 err_bannedfromchan
 
 :electret.shadowcat.co.uk 474 nick #channel :Cannot join channel (+b)
 
 =cut
 
-sub irc_err_bannedfromchan {
+sub err_bannedfromchan {
   my ($self, $message) = @_;
-  my $channel = $message->{params}[1];
+  my $channel = lc $message->{params}[1];
   my $name    = as_id $self->name, $channel;
   my $data    = {status => 401, message => $message->{params}[2]};
 
@@ -656,15 +699,15 @@ sub irc_err_bannedfromchan {
   );
 }
 
-=head2 irc_err_nosuchchannel
+=head2 err_nosuchchannel
 
 :astral.shadowcat.co.uk 403 nick #channel :No such channel
 
 =cut
 
-sub irc_err_nosuchchannel {
+sub err_nosuchchannel {
   my ($self, $message) = @_;
-  my $channel = $message->{params}[1];
+  my $channel = lc $message->{params}[1];
   my $name = as_id $self->name, $channel;
 
   Scalar::Util::weaken($self);
@@ -677,14 +720,26 @@ sub irc_err_nosuchchannel {
   );
 }
 
-=head2 irc_err_notonchannel
+=head2 err_nosuchnick
+
+  :electret.shadowcat.co.uk 442 sender nick :No such nick
+
+=cut
+
+sub err_nosuchnick {
+  my ($self, $message) = @_;
+
+  $self->_publish(err_nosuchnick => {nick => $message->{params}[1]});
+}
+
+=head2 err_notonchannel
 
 :electret.shadowcat.co.uk 442 nick #channel :You're not on that channel
 
 =cut
 
-sub irc_err_notonchannel {
-  shift->irc_err_nosuchchannel(@_);
+sub err_notonchannel {
+  shift->err_nosuchchannel(@_);
 }
 
 =head2 irc_rpl_namreply
@@ -704,7 +759,7 @@ sub irc_rpl_namreply {
     push @nicks, {nick => $_, mode => $mode};
   }
 
-  $self->_publish(rpl_namreply => {nicks => \@nicks, target => $message->{params}[2],});
+  $self->_publish(rpl_namreply => {nicks => \@nicks, target => lc $message->{params}[2],});
 }
 
 =head2 irc_rpl_liststart
@@ -727,6 +782,9 @@ sub irc_rpl_liststart {
 
 sub irc_rpl_list {
   my ($self, $message) = @_;
+
+  # Will not force lowercase on channel name [1] here since it is only
+  # used for representation
 
   push @{$self->{channel_list}},
     {name => $message->{params}[1], visible => $message->{params}[2], title => $message->{params}[3] || 'No title',};
@@ -753,10 +811,10 @@ sub irc_rpl_listend {
 
 sub irc_mode {
   my ($self, $message) = @_;
-  my $target = shift @{$message->{params}};
+  my $target = lc shift @{$message->{params}};
   my $mode   = shift @{$message->{params}};
 
-  if ($target eq $self->_irc->nick) {
+  if ($target eq lc $self->_irc->nick) {
     my $data = {target => $self->name, message => "You are connected to @{[$self->name]} with mode $mode",};
 
     $self->_add_convos_message($data);
@@ -810,7 +868,7 @@ Handle join commands from user. Add to channel set.
 
 sub cmd_join {
   my ($self, $message) = @_;
-  my $channel = $message->{params}[0] || '';
+  my $channel = lc $message->{params}[0] || '';
   my $name;
 
   if ($channel =~ /^[#&]+\w/) {

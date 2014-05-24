@@ -1,9 +1,5 @@
 use t::Helper;
 
-plan skip_all =>
-  'Live tests skipped. Set REDIS_TEST_DATABASE to "default" for db #14 on localhost or a redis:// url for custom.'
-  unless $ENV{REDIS_TEST_DATABASE};
-
 my $server = $t->app->redis->subscribe('convos:user:fooman:magnet');
 my ($form, $tmp, @ctrl);
 
@@ -43,8 +39,7 @@ $t->post_ok('/connection/add', form => $form)->status_is('302')
 is_deeply \@ctrl, [qw( fooman freenode )], 'start connection';
 
 $t->get_ok($t->tx->res->headers->location)->status_is(200)->text_is('title', 'Testing - convos')
-  ->element_exists('div.messages ul li')
-  ->element_exists('div.messages ul li:first-child img[src="/avatar/convos@loopback"]')
+  ->element_exists('div.messages ul li')->element_exists('div.messages ul li:first-child img[src^="/avatar"]')
   ->text_is('div.messages ul li:first-child h3 a', 'convos')
   ->text_is('div.messages ul li:first-child div',  'Hi fooman!');
 

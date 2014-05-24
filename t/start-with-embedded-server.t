@@ -1,10 +1,6 @@
 use t::Helper;
 use Mojo::Util qw( spurt );
 
-plan skip_all =>
-  'Live tests skipped. Set REDIS_TEST_DATABASE to "default" for db #14 on localhost or a redis:// url for custom.'
-  unless $ENV{REDIS_TEST_DATABASE};
-
 my $t_pid = $$;
 my @log;
 
@@ -25,7 +21,7 @@ $t->app->log->on(message => sub { shift; shift; push @log, @_; });
   $t->app->{convos_executable_path} = $backend;
   spurt <<"  APP", $backend;
 #!$^X
-BEGIN { \$ENV{REDIS_TEST_DATABASE} = "$ENV{REDIS_TEST_DATABASE}" }
+BEGIN { \$ENV{CONVOS_REDIS_URL} = "$ENV{CONVOS_REDIS_URL}" }
 use lib 'lib';
 use t::Helper;
 redis_do set => 'convos:backend:pid' => \$\$;
@@ -41,7 +37,8 @@ sleep 4;
   is redis_do(get => 'convos:backend:lock'),    undef, 'not started: lock is not set';
   is redis_do(get => 'convos:backend:pid'),     undef, 'not started: pid is not set';
   is redis_do(get => 'convos:backend:started'), undef, 'not started: backend was not started';
-  like $log[-1], qr{Backend is not running .* not be automatically}, 'Backend is not running';
+  like $log[-1], qr{Set CONVOS_BACKEND_EMBEDDED=1 to automatically start the backend},
+    'Set CONVOS_BACKEND_EMBEDDED=1 to automatically start the backend';
 }
 
 {

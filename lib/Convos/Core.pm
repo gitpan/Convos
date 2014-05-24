@@ -120,11 +120,13 @@ sub start {
     sub {
       my ($delay) = @_;
 
+      $self->redis->del('convos:host2convos');
       $self->redis->del('convos:loopback:names');    # clear loopback nick list
       $self->redis->smembers('connections', $delay->begin);
     },
     sub {
       my ($delay, $connections) = @_;
+
       warn sprintf "[core] Starting %s connection(s)\n", int @$connections if DEBUG;
       for my $conn (@$connections) {
         my ($login, $name) = split /:/, $conn;
@@ -143,7 +145,7 @@ sub _connection {
   my $conn = $self->{connections}{$args{login}}{$args{name}};
 
   unless ($conn) {
-    $conn = Convos::Core::Connection->new(redis => $self->redis, %args);
+    $conn = Convos::Core::Connection->new(redis => $self->redis, log => $self->log, %args);
     $self->{connections}{$args{login}}{$args{name}} = $conn;
   }
 

@@ -1,13 +1,13 @@
 ---
 abstract: 'Multiuser IRC proxy with web interface'
 author:
-  - 'Jan Henning Thorsen <jhthorsen@cpan.org>'
+  - 'Jan Henning Thorsen <jhthorsen\@cpan.org>'
 build_requires:
   Test::More: 0.90
 configure_requires:
   ExtUtils::MakeMaker: 0
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
+generated_by: 'ExtUtils::MakeMaker version 6.64, CPAN::Meta::Converter version 2.131560'
 license: artistic_2
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,10 +19,11 @@ no_index:
     - inc
 requires:
   IRC::Utils: 0.12
-  Mojo::IRC: 0.0303
+  Mojo::IRC: 0.06
   Mojo::Redis: 0.992
   Mojolicious: 4.63
   Mojolicious::Plugin::AssetPack: 0.06
+  Mojolicious::Plugin::LinkEmbedder: 0.03
   Parse::IRC: 1.18
   Time::Piece: 1.2
   URI::Find: 20111103
@@ -32,4 +33,4 @@ resources:
   homepage: http://convos.by
   license: http://www.opensource.org/licenses/artistic-license-2.0
   repository: https://github.com/Nordaaker/convos
-version: 0.4002
+version: 0.5

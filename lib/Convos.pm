@@ -6,7 +6,7 @@ Convos - Multiuser IRC proxy with web interface
 
 =head1 VERSION
 
-0.4002
+0.5
 
 =head1 DESCRIPTION
 
@@ -37,7 +37,21 @@ the link to view the data.
 
 =back
 
-=head2 Running convos
+=head2 Architecture principles
+
+=over 4
+
+=item * Keep the JS simple and manageable
+
+=item * Use Redis to manage state / publish subscribe
+
+=item * Archive logs in plain text format, use ack to search them.
+
+=item * Bootstrap-based user interface
+
+=back
+
+=head1 RUNNING CONVOS
 
 Convos has sane defaults so after installing L<Convos> you should be
 able to just run it:
@@ -68,20 +82,6 @@ running any of the commands above. Example:
 You can use L<https://github.com/Nordaaker/convos/blob/release/convos.conf>
 as config file template.
 
-=head2 Architecture principles
-
-=over 4
-
-=item * Keep the JS simple and manageable
-
-=item * Use Redis to manage state / publish subscribe
-
-=item * Archive logs in plain text format, use ack to search them.
-
-=item * Bootstrap-based user interface
-
-=back
-
 =head2 Environment
 
 Convos can be configured with the following environment variables:
@@ -90,8 +90,9 @@ Convos can be configured with the following environment variables:
 
 =item * CONVOS_BACKEND_EMBEDDED=1
 
-Set CONVOS_MANUAL_BACKEND to a true value if you're starting L<Convos>
-with C<morbo> and want to run the backend embedded.
+Set CONVOS_MANUAL_BACKEND to a true value if you want to force the frontend
+to start the backend embedded. This is useful if you want to test L<Convos>
+with L<morbo|Mojo::Server::Morbo>.
 
 =item * CONVOS_DEBUG=1
 
@@ -99,16 +100,71 @@ Set CONVOS_DEBUG for extra debug output to STDERR.
 
 =item * CONVOS_MANUAL_BACKEND=1
 
-Disable the frontend from starting the backend.
+Disable the frontend from automatically starting the backend.
 
 =item * CONVOS_PING_INTERVAL=30
 
 Set how often to send "keep-alive" through the web socket. Default is
 every 30 second.
 
+=item * CONVOS_REDIS_URL
+
+This is the URL to the Redis backend, and should follow this format:
+
+  redis://x:password@server:port/database_index
+  redis://127.0.0.1:6379/1 # suggested value
+
+Convos will use C<REDISTOGO_URL> or C<DOTCLOUD_DATA_REDIS_URL> if
+C<CONVOS_REDIS_URL> is not set.
+
+It is also possible to set C<CONVOS_REDIS_INDEX=2> to use the
+database index 2, instead of the default. This is useful when
+C<REDISTOGO_URL> or C<DOTCLOUD_DATA_REDIS_URL> does not contain
+the datbase index.
+
+=item * CONVOS_INVITE_CODE
+
+If set must be appended to register url. Example:
+
+  http://your.convos.by/register/some-secret-invite-code
+
 =item * MOJO_IRC_DEBUG=1
 
 Set MOJO_IRC_DEBUG for extra IRC debug output to STDERR.
+
+=back
+
+=head2 HTTP headers
+
+=over 4
+
+=item * X-Request-Base
+
+Set this header if you are mounting Convos under a custom path. Example
+with nginx:
+
+  # mount the application under /convos
+  location /convos {
+    # remove "/convos" from the forwarded request
+    rewrite ^/convos(.*)$ $1 break;
+
+    # generic headers for correct handling of ws and http
+    proxy_http_version 1.1;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $host;
+
+    # set this if you are running SSL
+    proxy_set_header X-Forwarded-HTTPS 1;
+
+    # inform Convos the full location where it is mounted
+    proxy_set_header X-Request-Base "https://some-domain.com/convos";
+
+    # tell nginx where Convos is running
+    proxy_pass http://10.0.0.10:8080;
+  }
 
 =back
 
@@ -123,7 +179,6 @@ Set MOJO_IRC_DEBUG for extra IRC debug output to STDERR.
 =item * Icon: L<https://raw.github.com/Nordaaker/convos/master/public/image/icon.svg>
 
 =item * Logo: L<https://raw.github.com/Nordaaker/convos/master/public/image/logo.svg>
-
 
 =back
 
@@ -153,13 +208,14 @@ Backend functionality.
 
 use Mojo::Base 'Mojolicious';
 use Mojo::Redis;
+use Mojo::Util qw( md5_sum );
 use File::Spec::Functions qw( catdir catfile tmpdir );
 use File::Basename qw( dirname );
 use Convos::Core;
 use Convos::Core::Util ();
 use Convos::Upgrader;
 
-our $VERSION = '0.4002';
+our $VERSION = '0.5';
 
 =head1 ATTRIBUTES
 
@@ -201,6 +257,7 @@ has core => sub {
   my $self = shift;
   my $core = Convos::Core->new;
 
+  $core->log($self->log);
   $core->redis->server($self->redis->server);
   $core;
 };
@@ -233,22 +290,43 @@ sub startup {
 
   $self->cache;                            # make sure cache is ok
   $self->plugin('Convos::Plugin::Helpers');
-  $self->secrets($config->{secrets} || [$config->{secret} || die '"secrets" is required in config file']);
+  $self->secrets([time]);                  # will be replaced by _set_secrets()
   $self->sessions->default_expiration(86400 * 30);
   $self->_assets($config);
   $self->_public_routes;
   $self->_private_routes;
 
+  if (!eval { Convos::Plugin::Helpers::REDIS_URL() } and $config->{redis}) {
+    $self->log->warn("redis url from config file will be deprecated. Run 'perldoc Convos' for alternative setup.");
+    $ENV{CONVOS_REDIS_URL} = $config->{redis};
+  }
+  if (!$ENV{CONVOS_REDIS_URL} and $self->mode eq 'production') {
+    $ENV{CONVOS_REDIS_URL} = 'redis://127.0.0.1:6379/1';
+    $self->log->info("Using default CONVOS_REDIS_URL=$ENV{CONVOS_REDIS_URL}");
+  }
+
+  if (!$ENV{CONVOS_INVITE_CODE} and $config->{invite_code}) {
+    $self->log->warn(
+      "invite_code from config file will be deprecated. Set the CONVOS_INVITE_CODE env variable instead.");
+    $ENV{CONVOS_INVITE_CODE} = $config->{invite_code};
+  }
+
   $self->defaults(full_page => 1);
   $self->hook(
     before_dispatch => sub {
       my $c = shift;
+
       $c->stash(full_page => !($c->req->is_xhr || $c->param('_pjax')));
+
+      if (my $base = $c->req->headers->header('X-Request-Base')) {
+        $c->req->url->base(Mojo::URL->new($base));
+      }
     }
   );
 
   Mojo::IOLoop->timer(5 => sub { $ENV{CONVOS_MANUAL_BACKEND}     or $self->_start_backend; });
   Mojo::IOLoop->timer(0 => sub { $ENV{CONVOS_SKIP_VERSION_CHECK} or $self->_check_version; });
+  Mojo::IOLoop->timer(0 => sub { $self->_set_secrets });
 }
 
 sub _assets {
@@ -257,12 +335,9 @@ sub _assets {
   $self->plugin('AssetPack' => {rebuild => $config->{AssetPack}{rebuild} // 1});
   $self->asset('convos.css', '/sass/main.scss');
   $self->asset(
-    'convos.js',                      '/js/jquery.min.js',
-    '/js/jquery.hotkeys.min.js',      '/js/jquery.fastbutton.min.js',
-    '/js/jquery.nanoscroller.min.js', '/js/jquery.pjax.js',
-    '/js/selectize.js',               '/js/globals.js',
-    '/js/jquery.doubletap.js',        '/js/ws-reconnecting.js',
-    '/js/jquery.helpers.js',          '/js/convos.chat.js',
+    'convos.js',              '/js/jquery.min.js',     '/js/jquery.hotkeys.js', '/js/jquery.fastbutton.js',
+    '/js/jquery.pjax.js',     '/js/selectize.js',      '/js/globals.js',        '/js/jquery.doubletap.js',
+    '/js/ws-reconnecting.js', '/js/jquery.helpers.js', '/js/convos.chat.js',
   );
 }
 
@@ -275,7 +350,7 @@ sub _check_version {
       my ($upgrader, $latest) = @_;
       $latest and return;
       $log->error(
-        "The database schema has changed.\nIt must be updated before we can start!\n\nRun '$self->{convos_executable_path} upgrade, then try again.'\n\n"
+        "The database schema has changed.\nIt must be updated before we can start!\n\nRun '$self->{convos_executable_path} upgrade', then try again.\n\n"
       );
       exit;
     },
@@ -298,6 +373,8 @@ sub _private_routes {
   my $r = $self->routes->route->bridge('/')->to('user#auth', layout => 'view');
   my $network_r;
 
+  $self->plugin('LinkEmbedder');
+
   $r->websocket('/socket')->to('chat#socket')->name('socket');
   $r->get('/chat/command-history')->to('client#command_history');
   $r->get('/chat/conversations')->to(cb => sub { shift->conversation_list }, layout => undef)
@@ -314,6 +391,7 @@ sub _private_routes {
   $r->any('/network/:name/edit')->to('connection#edit_network')->name('network.edit');
   $r->get('/oembed')->to('oembed#generate', layout => undef)->name('oembed');
   $r->any('/profile')->to('user#edit')->name('user.edit');
+  $r->post('/profile/timezone/offset')->to('user#tz_offset');
   $r->get('/wizard')->to('connection#wizard')->name('wizard');
 
   $network_r = $r->route('/:network');
@@ -326,13 +404,39 @@ sub _public_routes {
   my $r = $self->routes->route->to(layout => 'tactile');
 
   $r->get('/')->to('client#route')->name('index');
-  $r->get('/avatar/*id')->to('user#avatar')->name('avatar');
+  $r->get('/avatar')->to('user#avatar')->name('avatar');
   $r->get('/login')->to('user#login')->name('login');
   $r->post('/login')->to('user#login');
   $r->get('/register/:invite', {invite => ''})->to('user#register')->name('register');
   $r->post('/register/:invite', {invite => ''})->to('user#register');
   $r->get('/logout')->to('user#logout')->name('logout');
   $r;
+}
+
+sub _set_secrets {
+  my $self  = shift;
+  my $redis = $self->redis;
+
+  Mojo::IOLoop->delay(
+    sub {
+      my ($delay) = @_;
+      $redis->lrange('convos:secrets', 0, -1, $delay->begin);
+      $redis->getset('convos:secrets:lock' => 1, $delay->begin);
+      $redis->expire('convos:secrets:lock' => 5);
+    },
+    sub {
+      my ($delay, $secrets, $locked) = @_;
+
+      $secrets ||= $self->config->{secrets};
+
+      return $self->app->secrets($secrets) if $secrets and @$secrets;
+      return $self->_set_secrets if $locked;
+      $secrets = [md5_sum rand . $$ . time];
+      $self->app->secrets($secrets);
+      $redis->lpush('convos:secrets', $secrets->[0]);
+      $redis->del('convos:secrets:lock');
+    },
+  );
 }
 
 sub _start_backend {
@@ -365,7 +469,8 @@ sub _start_backend {
         $self->core->start;
       }
       else {                                                    # morbo
-        $self->log->warn('Backend is not running and it will not be automatically started.');
+        $self->log->warn(
+          'Set CONVOS_BACKEND_EMBEDDED=1 to automatically start the backend from morbo. (The backend is not running)');
         $redis->del('convos:backend:lock');
       }
     },

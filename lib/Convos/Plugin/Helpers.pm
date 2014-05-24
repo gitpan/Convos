@@ -12,6 +12,16 @@ use Convos::Core::Util qw( format_time id_as);
 use constant DEBUG => $ENV{CONVOS_DEBUG} ? 1 : 0;
 use URI::Find;
 
+sub REDIS_URL {
+  $ENV{CONVOS_REDIS_URL} ||= do {
+    my $url = $ENV{REDISTOGO_URL} || $ENV{DOTCLOUD_DATA_REDIS_URL}
+      or die "CONVOS_REDIS_URL is not set. Run 'perldoc Convos' for details.\n";
+    $url = Mojo::URL->new($url);
+    $url->path($ENV{CONVOS_REDIS_INDEX}) if $ENV{CONVOS_REDIS_INDEX};
+    $url->to_string;
+  };
+}
+
 =head1 HELPERS
 
 =head2 active_class
@@ -35,9 +45,8 @@ Used to insert an image tag.
 
 sub avatar {
   my ($self, $avatar, @args) = @_;
-  my $id = join '@', @$avatar{qw( user host )};
 
-  $self->image($self->url_for(avatar => {id => $id}), @args);
+  $self->image($self->url_for('avatar')->query(%$avatar), alt => $avatar->{user}, @args);
 }
 
 =head2 id_as
@@ -103,6 +112,7 @@ sub conversation_list {
           };
 
         $self->redis->zcount("user:$login:connection:$network:$target:msg", $timestamp, '+inf', $delay->begin);
+        $self->redis->hget("user:$login:connection:$network:$target", "topic", $delay->begin);
         $i++;
       }
 
@@ -110,11 +120,12 @@ sub conversation_list {
       $self->stash(conversation_list => $conversation_list, networks => $networks || []);
     },
     sub {
-      my ($delay, @unread_count) = @_;
-      my $conversation_list = pop @unread_count;
+      my ($delay, @args) = @_;
+      my $conversation_list = pop @args;
 
       for my $c (@$conversation_list) {
-        $c->{unread} = shift @unread_count || 0;
+        $c->{unread} = shift @args || 0;
+        $c->{topic}  = shift @args || '';
       }
 
       return $self->$cb($conversation_list) if $cb;
@@ -190,7 +201,7 @@ sub redis {
 
   $c->$cache_to->{redis} ||= do {
     my $log = $c->app->log;
-    my $redis = Mojo::Redis->new(server => $c->config->{redis});
+    my $redis = Mojo::Redis->new(server => REDIS_URL);
 
     $redis->on(
       error => sub {
@@ -217,17 +228,6 @@ sub notification_list {
   Mojo::IOLoop->delay(
     sub {
       my ($delay) = @_;
-      my $n = $self->param('notification');
-
-      if (defined $n) {
-        $self->_modify_notification($n, read => 1, $delay->begin);
-      }
-      else {
-        $delay->begin->();
-      }
-    },
-    sub {
-      my ($delay, $modified) = @_;
       $self->redis->lrange($key, 0, 20, $delay->begin);
     },
     sub {
@@ -285,12 +285,18 @@ Returns a "E<lt>span>" tag with a timestamp.
 
 sub timestamp_span {
   my ($c, $timestamp) = @_;
+  my $offset = $c->session('tz_offset') || 0;
+  my $now    = time;
+  my $format = '%e. %b %H:%M';
 
-  return $c->tag(
+  $format = '%H:%M' if $timestamp > $now - 86400;
+  $timestamp += $offset * 3600;    # offset is in hours
+
+  $c->tag(
     'span',
     class => 'timestamp',
-    title => format_time($timestamp, '%e. %B'),
-    format_time($timestamp, '%e. %b %H:%M:%S')
+    title => format_time($timestamp, '%e. %B %H:%M:%S'),
+    format_time($timestamp, $format),
   );
 }
 

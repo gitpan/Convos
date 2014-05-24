@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html data-basepath="<%= $self->url_for('/') %>">
+  <head>
+    %= include 'partials/head'
+  </head>
+  <body class="tactile">
+    %= content
+  </body>
+</html>

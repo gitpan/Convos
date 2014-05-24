@@ -1,9 +1,5 @@
 use t::Helper;
 
-plan skip_all =>
-  'Live tests skipped. Set REDIS_TEST_DATABASE to "default" for db #14 on localhost or a redis:// url for custom.'
-  unless $ENV{REDIS_TEST_DATABASE};
-
 redis_do(
   [hmset => 'user:doe', digest => 'E2G3goEIb8gpw', email => ''],
   [
@@ -44,10 +40,11 @@ $t->get_ok('/')->header_like('Location', qr{/magnet/batman$}, 'Redirect on last 
 $t->get_ok('/chat/command-history')->status_is(200)->content_is('[]');
 
 $t->get_ok('/chat/conversations')->status_is(200)->element_exists('ul.conversations')
-  ->element_exists('li:nth-of-type(1)')->element_exists('a[href="/magnet/batman"][data-unread="0"]')
-  ->element_exists('li:nth-of-type(2)')->element_exists('a[href="/bitlbee/&bitlbee"][data-unread="0"]')
-  ->element_exists('li:nth-of-type(3)')->element_exists('a[href="/magnet/%23convos"][data-unread="0"]')
-  ->element_exists_not('li:nth-of-type(4)');
+  ->element_exists('li:nth-of-type(1) a[href="/convos"][data-unread="0"]')
+  ->element_exists('li:nth-of-type(2) a[href="/magnet/batman"][data-unread="0"]')
+  ->element_exists('li:nth-of-type(3) a[href="/magnet/%23convos"][data-unread="0"]')
+  ->element_exists('li:nth-of-type(4) a[href="/bitlbee/&bitlbee"][data-unread="0"]')
+  ->element_exists_not('li:nth-of-type(5)');
 
 $t->get_ok('/chat/notifications')->status_is(200)->element_exists('ul.notifications')
   ->element_exists_not('li:nth-of-type(1)');
