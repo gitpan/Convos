@@ -4,7 +4,7 @@
       "Jan Henning Thorsen <jhthorsen\@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.64, CPAN::Meta::Converter version 2.131560",
+   "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "artistic_2"
    ],
@@ -34,8 +34,8 @@
          "requires" : {
             "IRC::Utils" : "0.12",
             "Mojo::IRC" : "0.06",
-            "Mojo::Redis" : "0.992",
-            "Mojolicious" : "4.63",
+            "Mojo::Redis" : "0.9928",
+            "Mojolicious" : "5",
             "Mojolicious::Plugin::AssetPack" : "0.06",
             "Mojolicious::Plugin::LinkEmbedder" : "0.03",
             "Parse::IRC" : "1.18",
@@ -58,5 +58,5 @@
          "url" : "https://github.com/Nordaaker/convos"
       }
    },
-   "version" : "0.5"
+   "version" : "0.6"
 }
