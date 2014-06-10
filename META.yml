@@ -23,7 +23,7 @@ requires:
   Mojo::Redis: 0.9928
   Mojolicious: 5
   Mojolicious::Plugin::AssetPack: 0.06
-  Mojolicious::Plugin::LinkEmbedder: 0.03
+  Mojolicious::Plugin::LinkEmbedder: 0.06
   Parse::IRC: 1.18
   Time::Piece: 1.2
   URI::Find: 20111103
@@ -33,4 +33,4 @@ resources:
   homepage: http://convos.by
   license: http://www.opensource.org/licenses/artistic-license-2.0
   repository: https://github.com/Nordaaker/convos
-version: 0.6
+version: 0.7
