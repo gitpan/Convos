@@ -1,7 +1,7 @@
 ---
 abstract: 'Multiuser IRC proxy with web interface'
 author:
-  - 'Jan Henning Thorsen <jhthorsen\@cpan.org>'
+  - 'Jan Henning Thorsen <jhthorsen@cpan.org>'
 build_requires:
   Test::More: 0.90
 configure_requires:
@@ -19,18 +19,17 @@ no_index:
     - inc
 requires:
   IRC::Utils: 0.12
-  Mojo::IRC: 0.06
+  Mojo::IRC: 0.09
   Mojo::Redis: 0.9928
-  Mojolicious: 5
-  Mojolicious::Plugin::AssetPack: 0.06
+  Mojolicious: 5.16
+  Mojolicious::Plugin::AssetPack: 0.19
   Mojolicious::Plugin::LinkEmbedder: 0.06
   Parse::IRC: 1.18
   Time::Piece: 1.2
   URI::Find: 20111103
   Unicode::UTF8: 0.58
 resources:
-  bugtracker: https://github.com/Nordaaker/convos/issues
-  homepage: http://convos.by
-  license: http://www.opensource.org/licenses/artistic-license-2.0
-  repository: https://github.com/Nordaaker/convos
-version: 0.7
+  bugtracker: https://github.com/jhthorsen/convos/issues
+  homepage: https://github.com/jhthorsen/convos
+  repository: https://github.com/Nordaaker/convos.git
+version: 0.8

@@ -8,6 +8,7 @@ Convos::Chat - Mojolicious controller for IRC chat
 
 use Mojo::Base 'Mojolicious::Controller';
 use Mojo::JSON 'j';
+use Mojo::Util;
 use Convos::Core::Commands;
 use constant DEFAULT_RESPONSE => "Hey, I don't know how to respond to that. Try /help to see what I can so far.";
 
@@ -24,7 +25,7 @@ sub socket {
   my $login = $self->session('login');
   my $key   = "convos:user:$login:out";
 
-  Mojo::IOLoop->stream($self->tx->connection)->timeout(60);
+  $self->inactivity_timeout(60);
   Scalar::Util::weaken($self);
 
   # from browser to backend
@@ -36,16 +37,22 @@ sub socket {
       $self->logf(debug => '[ws] < %s', $octets);
 
       if ($octets eq 'PING') {
-        return $self->send('PONG');
+        return $self->redis->execute(
+          PING => sub {
+            $_[1] ? $self->send('PONG') : $self->finish;
+          }
+        );
       }
 
       $dom = Mojo::DOM->new($octets)->at('div');
 
       if ($dom and $dom->{'id'} and $dom->{'data-network'}) {
-        @$dom{qw( network target uuid )} = map { delete $dom->{$_} || '' } qw( data-network data-target id );
+        @$dom{qw( network state target uuid )}
+          = map { delete $dom->{$_} // '' } qw( data-network data-state data-target id );
         $self->_handle_socket_data($dom);
       }
       else {
+        $octets = Mojo::Util::xml_escape($octets);
         $self->_send_400($dom, "Invalid message ($octets)")->finish;
       }
     }
@@ -63,7 +70,7 @@ sub socket {
       my ($sub, $err, @messages) = @_;
 
       return unless $self;
-      return $self->finish->logf(warn => 'sub: %s', $err) if $err;
+      return $self->finish->logf(warn => '[REDIS] %s', $err) if $err;
       pop @messages;    # remove channel name from messages
 
       $self->logf(debug => '[%s] > %s', $key, $messages[0]);
@@ -148,7 +155,7 @@ sub _send_400 {
 
   $self->send_partial(
     message   => $message,
-    network   => $args->{'data-network'} || 'any',
+    network   => $args->{'data-network'} || '',
     status    => 400,
     template  => 'event/server_message',
     timestamp => time,
