@@ -1,7 +1,7 @@
 {
    "abstract" : "Multiuser IRC proxy with web interface",
    "author" : [
-      "Marcus <marcus@nordaaker.com>"
+      "Jan Henning Thorsen <jhthorsen@cpan.org>"
    ],
    "dynamic_config" : 1,
    "generated_by" : "ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.140640",
@@ -48,12 +48,12 @@
    "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
-         "web" : "https://github.com/jhthorsen/convos/issues"
+         "web" : "https://github.com/Nordaaker/convos/issues"
       },
-      "homepage" : "https://github.com/jhthorsen/convos",
+      "homepage" : "http://convos.by/",
       "repository" : {
          "url" : "https://github.com/Nordaaker/convos.git"
       }
    },
-   "version" : "0.8001"
+   "version" : "0.8002"
 }

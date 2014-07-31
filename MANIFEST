@@ -80,8 +80,7 @@ lib/Convos/public/js/jquery.notify.js
 lib/Convos/public/js/jquery.pjax.js
 lib/Convos/public/js/selectize.js
 lib/Convos/public/js/ws-reconnecting.js
-lib/Convos/public/packed/convos-1c86d321b6ba1affb90a71e7178ac2d2.css
-lib/Convos/public/packed/convos-5792e03139a3f8f79dcfc1de001c3146.js
+lib/Convos/public/packed/convos-630f80542a3c35276f8e620109f8c664.js
 lib/Convos/public/sass/_chat.scss
 lib/Convos/public/sass/_common.scss
 lib/Convos/public/sass/_font_awesome.scss
