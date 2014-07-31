@@ -1,35 +1,35 @@
 ---
 abstract: 'Multiuser IRC proxy with web interface'
 author:
-  - 'Jan Henning Thorsen <jhthorsen@cpan.org>'
+  - 'Marcus <marcus@nordaaker.com>'
 build_requires:
-  Test::More: 0.90
+  Test::More: '0.90'
 configure_requires:
-  ExtUtils::MakeMaker: 0
+  ExtUtils::MakeMaker: '0'
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
+generated_by: 'ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.140640'
 license: artistic_2
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: Convos
 no_index:
   directory:
     - t
     - inc
 requires:
-  IRC::Utils: 0.12
-  Mojo::IRC: 0.09
-  Mojo::Redis: 0.9928
-  Mojolicious: 5.16
-  Mojolicious::Plugin::AssetPack: 0.19
-  Mojolicious::Plugin::LinkEmbedder: 0.06
-  Parse::IRC: 1.18
-  Time::Piece: 1.2
-  URI::Find: 20111103
-  Unicode::UTF8: 0.58
+  IRC::Utils: '0.12'
+  Mojo::IRC: '0.09'
+  Mojo::Redis: '0.9928'
+  Mojolicious: '5.16'
+  Mojolicious::Plugin::AssetPack: '0.19'
+  Mojolicious::Plugin::LinkEmbedder: '0.06'
+  Parse::IRC: '1.18'
+  Time::Piece: '1.2'
+  URI::Find: '20111103'
+  Unicode::UTF8: '0.58'
 resources:
   bugtracker: https://github.com/jhthorsen/convos/issues
   homepage: https://github.com/jhthorsen/convos
   repository: https://github.com/Nordaaker/convos.git
-version: 0.8
+version: '0.8001'

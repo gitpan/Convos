@@ -1,0 +1,3 @@
+name: convos
+description: Persistent web IRC client
+buildpack: https://github.com/kazeburo/heroku-buildpack-perl-procfile.git

@@ -1,10 +1,10 @@
 {
    "abstract" : "Multiuser IRC proxy with web interface",
    "author" : [
-      "Jan Henning Thorsen <jhthorsen@cpan.org>"
+      "Marcus <marcus@nordaaker.com>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.140640",
    "license" : [
       "artistic_2"
    ],
@@ -55,5 +55,5 @@
          "url" : "https://github.com/Nordaaker/convos.git"
       }
    },
-   "version" : "0.8"
+   "version" : "0.8001"
 }
