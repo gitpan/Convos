@@ -1,30 +1,7 @@
 .ship.conf
-blog/config.rb
-blog/Gemfile
-blog/Gemfile.lock
-blog/README.md
-blog/source/2013-10-26-welcome-to-ghost.html.markdown
-blog/source/feed.xml.builder
-blog/source/fonts/icons.eot
-blog/source/fonts/icons.svg
-blog/source/fonts/icons.ttf
-blog/source/fonts/icons.woff
-blog/source/images/favicon.ico
-blog/source/index.html.haml
-blog/source/javascripts/application.js.coffee
-blog/source/layouts/layout.haml
-blog/source/layouts/post.haml
-blog/source/stylesheets/_syntax.css.erb
-blog/source/stylesheets/application.css.scss
-blog/source/stylesheets/vendor/casper.css
 CHANGELOG.md
 cpanfile
 Dockerfile
-Guardfile
-irc_logs/#mojo/2013/12/17.log
-irc_logs/convos.pl/#mojo/2013/12/17.log
-irc_logs/fooman/2013/12/17.log
-irc_logs/irc.perl.org/fooman/2013/12/17.log
 lib/Convos.pm
 lib/Convos/Archive.pm
 lib/Convos/Chat.pm
@@ -34,7 +11,6 @@ lib/Convos/Command/flush.pm
 lib/Convos/Command/upgrade.pm
 lib/Convos/Command/version.pm
 lib/Convos/Connection.pm
-lib/Convos/convos.conf
 lib/Convos/Core.pm
 lib/Convos/Core/Archive.pm
 lib/Convos/Core/Commands.pm
@@ -80,6 +56,7 @@ lib/Convos/public/js/jquery.notify.js
 lib/Convos/public/js/jquery.pjax.js
 lib/Convos/public/js/selectize.js
 lib/Convos/public/js/ws-reconnecting.js
+lib/Convos/public/packed/convos-1c86d321b6ba1affb90a71e7178ac2d2.css
 lib/Convos/public/packed/convos-630f80542a3c35276f8e620109f8c664.js
 lib/Convos/public/sass/_chat.scss
 lib/Convos/public/sass/_common.scss
@@ -145,12 +122,15 @@ lib/Convos/Upgrader/v0_3003.pm
 lib/Convos/Upgrader/v0_3004.pm
 lib/Convos/Upgrader/v0_3005.pm
 lib/Convos/User.pm
-lighting
 Makefile.PL
 MANIFEST			This list of files
-Procfile
 README.md
-stackato.yml
+script/convos
+script/parse-irc-line.pl
+script/README
+script/test-convos-backend.sh
+script/test-convos-events.pl
+script/test-convos-frontend.sh
 t/00-basic.t
 t/app-secrets.t
 t/avatar.t
@@ -164,6 +144,7 @@ t/convos-server-messages.t
 t/core-basic.t
 t/core-connection-management.t
 t/core-util.t
+t/customized.t
 t/etc/redis.conf
 t/Helper.pm
 t/hypnotoad.t
@@ -175,17 +156,20 @@ t/new-conversation-on-new-private-message.t
 t/no-warn.t
 t/not-latest.t
 t/oembed.t
+t/origanization-name.t
 t/ping-pong.t
 t/profile.t
 t/redis-url.t
 t/redis-version.t
 t/register-invite-only.t
 t/register.t
-t/release-development.t
 t/release-production.t
 t/secure-cookies.t
 t/start-with-embedded-server.t
+t/target.t
 t/upgrader.t
+t/vendor/login_footer.html.ep
+t/vendor/register_footer.html.ep
 t/x-request-base.t
 META.yml                                 Module YAML meta-data (added by MakeMaker)
 META.json                                Module JSON meta-data (added by MakeMaker)

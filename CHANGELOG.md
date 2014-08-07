@@ -1,3 +1,11 @@
+## 0.81 (2014-08-07)
+- Fix typos in Docker file #114
+- Do not need config file anymore #102
+- Add support for CONVOS_ORGANIZATION_NAME #102
+- Add support for custom templates #102
+- Add more restrictive /:network/*target route #112
+- Change avatars to be cached in browser #113
+
 ## 0.8002 (2014-07-31)
 - Fix UNAUTHORIZED release
 
@@ -55,7 +63,6 @@
 - Wrap head in &lt;head&gt;
 - Whois improvements
 - CTCP support
-++
 
 ## 0.4 (2014-01-28)
 
