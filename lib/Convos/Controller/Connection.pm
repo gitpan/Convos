@@ -1,8 +1,8 @@
-package Convos::Connection;
+package Convos::Controller::Connection;
 
 =head1 NAME
 
-Convos::Connection - Mojolicious controller for IRC connections
+Convos::Controller::Connection - Mojolicious controller for IRC connections
 
 =cut
 
@@ -284,7 +284,7 @@ sub _add_connection {
     sub {
       my ($delay, $errors, $conn) = @_;
 
-      return $self->redirect_to('view.network', network => 'convos') unless $errors;
+      return $self->redirect_to('view.network', network => $conn->{name} || 'convos') unless $errors;
       return $self->param('wizard') ? $self->wizard : $self->_add_connection_form;
     },
   );

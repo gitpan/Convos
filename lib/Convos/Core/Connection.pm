@@ -82,7 +82,7 @@ Holds a L<Mojo::Redis> object.
 has name  => '';
 has log   => sub { Mojo::Log->new };
 has login => 0;
-has redis => sub { Mojo::Redis->new };
+has redis => sub { die 'redis connection required' };
 
 my @ADD_MESSAGE_EVENTS        = qw/ irc_privmsg ctcp_action /;
 my @ADD_SERVER_MESSAGE_EVENTS = qw/
@@ -453,7 +453,14 @@ sub irc_rpl_welcome {
     $self->{conversation_path},
     0, -1,
     sub {
-      $self->_irc->write(JOIN => $_) for $self->channels_from_conversations($_[1]);
+      for my $channel ($self->channels_from_conversations($_[1])) {
+        $self->redis->hget(
+          "$self->{path}:$channel",
+          key => sub {
+            $_[1] ? $self->_irc->write(JOIN => $channel, $_[1]) : $self->_irc->write(JOIN => $channel);
+          }
+        );
+      }
     }
   );
 }
@@ -791,9 +798,9 @@ sub irc_rpl_namreply {
   my $channel = lc $message->{params}[2] or return;
   my $nicks = $self->{nicks}{$channel} ||= [];
 
-  for (sort { lc $a cmp lc $b } split /\s+/, $message->{params}[3]) {    # 3 = "+nick0 @nick1 nick2"
-    my $mode = s/^(\W)// ? $1 : '';
-    push @$nicks, {nick => $_, mode => $mode};
+  for my $nick (sort { lc $a cmp lc $b } split /\s+/, $message->{params}[3]) {    # 3 = "+nick0 @nick1 nick2"
+    my $mode = $nick =~ s/^([@+])// ? $1 : '';
+    push @$nicks, {nick => $nick, mode => $mode};
   }
 }
 
@@ -892,6 +899,21 @@ sub cmd_nick {
   }
   else {
     $self->_publish(server_message => {status => 400, message => 'Invalid nick'});
+  }
+}
+
+=head2 cmd_join
+
+Store keys on channel join.
+
+=cut
+
+sub cmd_join {
+  my ($self, $message) = @_;
+
+  my $channel = $message->{params}[0];
+  if (my $key = $message->{params}[1]) {
+    $self->redis->hset("$self->{path}:$channel", key => $key);
   }
 }
 
