@@ -13,6 +13,7 @@ use URI::Find;
 use constant DEBUG        => $ENV{CONVOS_DEBUG}        || 0;
 use constant DEFAULT_URL  => $ENV{DEFAULT_AVATAR_URL}  || 'https://graph.facebook.com/%s/picture?height=40&width=40';
 use constant GRAVATAR_URL => $ENV{GRAVATAR_AVATAR_URL} || 'https://gravatar.com/avatar/%s?s=40&d=retro';
+use constant DISABLE_AUTO_EMBED => $ENV{CONVOS_DISABLE_AUTO_EMBED} || 0;
 
 =head1 HELPERS
 
@@ -88,6 +89,24 @@ sub conversation_list {
   );
 }
 
+=head2 day_changed
+
+  $bool = $c->day_changed($epoch_now, $epoch_prev);
+
+Returns true if day has changed between two events.
+
+=cut
+
+sub day_changed {
+  my $c          = shift;
+  my $epoch_now  = shift or return 0;
+  my $epoch_prev = shift or return 0;
+  my $today      = int($epoch_now - $epoch_now % 86400 + 86400);
+  my $yesterday  = int($epoch_prev - $epoch_prev % 86400 + 86400);
+
+  return $yesterday < $today;
+}
+
 =head2 format_conversation
 
   $c->format_conversation(\&iterator, \&callback);
@@ -158,6 +177,7 @@ sub _add_avatar {
 
 sub _parse_message {
   my ($c, $message, $delay) = @_;
+  my @class = DISABLE_AUTO_EMBED ? () : (class => 'external');
 
   # http://www.mirc.com/colors.html
   $message->{message} =~ s/\x03\d{0,15}(,\d{0,15})?//g;
@@ -169,7 +189,7 @@ sub _parse_message {
   URI::Find->new(
     sub {
       my $url = Mojo::Util::html_unescape(shift . '');
-      $c->link_to($url, $url, target => '_blank');
+      $c->link_to($url, $url, target => '_blank', @class);
     }
   )->find(\$message->{message});
 }
@@ -327,6 +347,7 @@ sub register {
   $app->helper(format_conversation => \&format_conversation);
   $app->helper(connection_list     => \&connection_list);
   $app->helper(conversation_list   => \&conversation_list);
+  $app->helper(day_changed         => \&day_changed);
   $app->helper(logf                => \&Convos::Core::Util::logf);
   $app->helper(format_time => sub { shift; format_time(@_); });
   $app->helper(notification_list => \&notification_list);

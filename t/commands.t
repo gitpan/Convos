@@ -32,7 +32,7 @@ $t->websocket_ok('/socket');
 }
 
 {
-  $t->send_ok(msg('/help asdasd'));
+  $t->send_ok(msg('/HeLp asdasd'));
   $dom->parse($t->message_ok->message->[1]);
   ok $dom->at('li.help[data-target=""] dl'), 'HELP';
 }
@@ -87,6 +87,9 @@ for my $cmd (qw/ t topic /) {
 
   $t->send_ok(msg('/mode +o batman '));
   is ws(), 'abc-123 MODE +o batman', 'abc-123 MODE +o batman';
+
+  $t->send_ok(msg('/kick batman'));
+  is ws(), 'abc-123 KICK #convos batman', 'abc-123 KICK #convos batman';
 
   $t->send_ok(msg('/names #foo '));
   is ws(), 'abc-123 NAMES #foo', 'abc-123 NAMES #foo';

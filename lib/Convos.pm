@@ -6,7 +6,7 @@ Convos - Multiuser IRC proxy with web interface
 
 =head1 VERSION
 
-0.82
+0.83
 
 =head1 DESCRIPTION
 
@@ -87,6 +87,11 @@ with L<morbo|Mojo::Server::Morbo>.
 =item * CONVOS_DEBUG=1
 
 Set CONVOS_DEBUG for extra debug output to STDERR.
+
+=item * CONVOS_DISABLE_AUTO_EMBED=1
+
+Set CONVOS_DISABLE_AUTO_EMBED to disable links from expanding into images,
+movies or other dynamic content.
 
 =item * CONVOS_MANUAL_BACKEND=1
 
@@ -254,7 +259,7 @@ use Convos::Core;
 use Convos::Core::Util ();
 use Convos::Upgrader;
 
-our $VERSION = '0.82';
+our $VERSION = '0.83';
 
 =head1 ATTRIBUTES
 
@@ -349,11 +354,12 @@ sub _assets {
   my $self = shift;
 
   $self->plugin('AssetPack');
-  $self->asset('c.css' => '/sass/convos.scss');
+  $self->plugin('FontAwesome4', css => []);
+  $self->asset('c.css' => qw( /scss/font-awesome.scss /sass/convos.scss ));
   $self->asset(
     'c.js' => qw(
       /js/globals.js
-      /js/jquery.min.js
+      /js/jquery.js
       /js/ws-reconnecting.js
       /js/jquery.hotkeys.js
       /js/jquery.finger.js
@@ -415,7 +421,7 @@ sub _from_cpan {
   my $self = shift;
   my $home = catdir dirname(__FILE__), 'Convos';
 
-  return if -d 'templates';
+  return if -d $self->home->rel_dir('templates');
   $self->home->parse($home);
   $self->static->paths->[0]   = $self->home->rel_dir('public');
   $self->renderer->paths->[0] = $self->home->rel_dir('templates');

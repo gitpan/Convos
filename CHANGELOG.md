@@ -1,3 +1,16 @@
+## 0.83 (2014-09-01)
+- Fix highlighting of multiple channels #137
+- Fix connection actions in sidebar #157
+- Fix autocomplete will not match offline nicks #129
+- Add number of participants #136
+- Add /names will be displayed with nick modes #138
+- Add visual indicator for when a new day starts #149
+- Add down arrow to clear input field #151
+- Add support for kicked event #134
+- Add highlight for new messages since last time window had focus #56
+- Add /kick command #134
+- Various UI improvements (Flatten, highlights/background go all out) #145, #146, #147, #162
+
 ## 0.82 (2014-08-24)
 - Requires IO::Socket::SSL 1.84
 - Requires Mojolicious 5.30

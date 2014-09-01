@@ -9,7 +9,7 @@ body.ios-input-focus {
 }
 
 nav.bar {
-  background: #fafafa;
+  background: $sidebarBackground;
   position: fixed;
   padding: 0 $bodyGutter;
   top: 0;
@@ -40,7 +40,7 @@ nav.bar {
   ul.conversations { height: $navHeight; }
 
   .right {
-    background: #fafafa;
+    background: $sidebarBackground; // required when right overlap conversation list
     position: absolute;
     top: 0;
     right: $bodyGutter;
@@ -50,8 +50,8 @@ nav.bar {
   a:hover, a:active { background-color: darken(#fff, 15%); color: #000; }
 
   @media (max-width: $responsiveWidth) {
-    padding: 0;
     .right { right: 0; }
+    & { padding-left: $bodyGutterSmall; padding-right: $bodyGutterSmall; }
   }
 }
 
@@ -78,8 +78,8 @@ form.input {
 
 // unread messages count
 nav.bar a b, form.conversations b {
-  background: #d53;
-  color: #fff;
+  background: #e5e5e5;
+  color: #888;
   font-size: 12px;
   line-height: 14px;
   font-weight: normal;
@@ -87,6 +87,11 @@ nav.bar a b, form.conversations b {
   position: absolute;
   right: 2px;
   @include border-radius(3px);
+}
+
+nav.bar a.mention b, form.conversations a.mention b {
+  background: #d53;
+  color: #fff;
 }
 
 div.messages {
@@ -97,7 +102,7 @@ div.messages {
   li {
     display: block;
     position: relative;
-    padding: 3px 0;
+    padding: 4px $bodyGutter;
     overflow: hidden;
 
     &.hidden { display: none !important; }
@@ -123,6 +128,9 @@ div.messages {
       padding-right: 2px;
     }
   }
+  @media (max-width: $responsiveWidth) {
+    li { padding: 4px $bodyGutterSmall; }
+  }
 
   li.help {
     dt { float: left; width: auto; padding-right: 5px; }
@@ -131,7 +139,7 @@ div.messages {
   }
 
   li.history-starting-point {
-    border-top: 2px solid darken(#fee, 20%);
+    border-top: 2px dotted #eaa;
   }
 
   li.same-nick {
@@ -140,7 +148,7 @@ div.messages {
   }
 
   li.message.channel.highlight { background: #fee; }
-  li.message.action div.content { padding-top: 20px; }
+  li.message.action div.content { padding-top: $bodyGutter; }
   li.message.action.same-nick div.content { padding-top: 0; }
   li.message.action div.content a { font-weight: normal; text-decoration: none; }
   li.message.pending div.content { color: #888; }
@@ -151,8 +159,9 @@ div.messages {
     h3 { color: #333; }
   }
   li.nick-change, li.nick-joined, li.nick-parted, li.nick-quit, li.notice, li.topic, li.whois {
-    background-color: #f9f7fa;
-    color: #888;
+    color: #999;
+    padding-top: 2px;
+    a { color: #999; }
   }
   li.nick-change, li.nick-parted, li.nick-quit {
     .content b { font-weight: normal; }
@@ -176,8 +185,9 @@ div.sidebar-right {
   overflow: auto;
   width: $nickListWidth;
   padding-bottom: 20px;
+  border-top: 1px solid #ddd;
   z-index: 2;
-  @include box-shadow(-2px 0 4px rgba(180,180,180,.5));
+  @include box-shadow(-2px 2px 4px rgba(180,180,180,.5));
 
   -webkit-overflow-scrolling: touch;
 
@@ -201,6 +211,8 @@ div.sidebar-right {
     color: #000;
   }
 
+  a:focus { outline: 1px solid #ccc; }
+
   h3 { font-size: 1em; margin: 0; };
   h3, a, div.form-group {
     text-decoration: none;
@@ -223,7 +235,8 @@ div.notification-list {
 
   a { padding: 2px 8px; color: #666; }
   a span.message { font-size: 0.9em; padding: 0; @include ellipsis(); }
-  li.unread a { background-color: rgba(204, 100, 40, 0.18); color: #000; };
+  li.unread a { background-color: rgba(204, 100, 40, 0.18); color: #000; }
+  li.unread a:focus, li.unread a:hover { background-color: rgba(204, 100, 40, 0.10); }
 }
 
 form.conversations {
@@ -239,7 +252,9 @@ form.conversations {
     background: #f8f8f8;
     display: block !important;
     right: 0 !important;
-    @include box-shadow(inset 2px -2px 2px rgba(180,180,180,.5));
+    border-left: 1px solid #ddd;
+    z-index: $navBarZindex - 10;
+    @include box-shadow(1px 0 1px 0 rgba(255,255,255,1));
   }
 }
 
