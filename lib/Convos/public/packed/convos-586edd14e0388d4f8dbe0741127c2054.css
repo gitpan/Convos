@@ -845,21 +845,15 @@ div.messages {
   @media (max-width: 700px) {
     div.messages li {
       padding: 4px 6px; } }
-  div.messages li.help dt, div.messages li.channel-list dt {
+  div.messages li.help dt {
     float: left;
     width: auto;
     padding-right: 5px; }
-  div.messages li.help dd, div.messages li.channel-list dd {
+  div.messages li.help dd {
     color: #666;
     margin: 0; }
-  div.messages li.help dd:before, div.messages li.channel-list dd:before {
+  div.messages li.help dd:before {
     content: '- '; }
-  div.messages li.channel-list input {
-    width: 100%; }
-  div.messages li.channel-list dd {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap; }
   div.messages li.history-starting-point {
     border-top: 2px dotted #eaa; }
   div.messages li.same-nick {

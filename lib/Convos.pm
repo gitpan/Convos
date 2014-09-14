@@ -6,7 +6,7 @@ Convos - Multiuser IRC proxy with web interface
 
 =head1 VERSION
 
-0.83
+0.84
 
 =head1 DESCRIPTION
 
@@ -45,8 +45,6 @@ the link to view the data.
 
 =item * Use Redis to manage state / publish subscribe
 
-=item * Archive logs in plain text format, use ack to search them.
-
 =item * Bootstrap-based user interface
 
 =back
@@ -72,116 +70,8 @@ non-blocking webserver. Run the same command again, and the webserver
 will L<hot reload|Mojo::Server::Hypnotoad/USR2> the source code without
 loosing any connections.
 
-=head2 Environment
-
-Convos can be configured with the following environment variables:
-
-=over 4
-
-=item * CONVOS_BACKEND_EMBEDDED=1
-
-Set CONVOS_MANUAL_BACKEND to a true value if you want to force the frontend
-to start the backend embedded. This is useful if you want to test L<Convos>
-with L<morbo|Mojo::Server::Morbo>.
-
-=item * CONVOS_DEBUG=1
-
-Set CONVOS_DEBUG for extra debug output to STDERR.
-
-=item * CONVOS_DISABLE_AUTO_EMBED=1
-
-Set CONVOS_DISABLE_AUTO_EMBED to disable links from expanding into images,
-movies or other dynamic content.
-
-=item * CONVOS_MANUAL_BACKEND=1
-
-Disable the frontend from automatically starting the backend.
-
-=item * CONVOS_ORGANIZATION_NAME
-
-Set this to customize the organization name on the landing page, in the title
-tag and other various sites. The default is L<Nordaaker|http://nordaaker.com/>.
-
-=item * CONVOS_REDIS_URL
-
-This is the URL to the Redis backend, and should follow this format:
-
-  redis://x:password@server:port/database_index
-  redis://127.0.0.1:6379/1 # suggested value
-
-Convos will use C<REDISCLOUD_URL>, C<REDISTOGO_URL>,
-C<DOTCLOUD_DATA_REDIS_URL> or default to "redis://127.0.0.1:6379/1" unless
-C<CONVOS_REDIS_URL> is not set.
-
-It is also possible to set C<CONVOS_REDIS_INDEX=2> to use the
-database index 2, instead of the default. This is useful when
-C<REDISTOGO_URL> or C<DOTCLOUD_DATA_REDIS_URL> does not contain
-the datbase index.
-
-=item * CONVOS_INVITE_CODE
-
-If set must be appended to register url. Example:
-
-  http://your.convos.by/register/some-secret-invite-code
-
-=item * CONVOS_SECURE_COOKIES=1
-
-Set CONVOS_SECURE_COOKIES to true in order to set the secure flag
-on all session cookies.  Requires HTTPS.
-
-=item * MOJO_IRC_DEBUG=1
-
-Set MOJO_IRC_DEBUG for extra IRC debug output to STDERR.
-
-=item * MOJO_LISTEN
-
-List of one or more locations to listen on. This also works for
-L<hypnotoad|Mojo::Server::Hypnotoad>. Example:
-
-  MOJO_LISTEN="http://*:8080,https://*:8443"
-
-L<Mojo::Server::Daemon/listen>.
-
-=item * MOJO_REVERSE_PROXY
-
-Set this to a true value if you're using L<hypnotoad|Mojo::Server::Hypnotoad>
-behind a reverse proxy, such as nginx.
-
-=back
-
-=head2 HTTP headers
-
-=over 4
-
-=item * X-Request-Base
-
-Set this header if you are mounting Convos under a custom path. Example
-with nginx:
-
-  # mount the application under /convos
-  location /convos {
-    # remove "/convos" from the forwarded request
-    rewrite ^/convos(.*)$ $1 break;
-
-    # generic headers for correct handling of ws and http
-    proxy_http_version 1.1;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Host $host;
-
-    # set this if you are running SSL
-    proxy_set_header X-Forwarded-HTTPS 1;
-
-    # inform Convos the full location where it is mounted
-    proxy_set_header X-Request-Base "https://some-domain.com/convos";
-
-    # tell nginx where Convos is running
-    proxy_pass http://10.0.0.10:8080;
-  }
-
-=back
+Convos can be configured using L<Convos::Manual::Environment>
+and L<Convos::Manual::HttpHeaders>.
 
 =head1 CUSTOM TEMPLATES
 
@@ -210,6 +100,11 @@ This template will be included below the form on the C</login> page.
 
 This template will be included below the form on the C</register> page.
 
+=item * vendor/wizard.html.ep
+
+This template will be included below the form on the C</wizard> page that a
+new visitor sees after registering.
+
 =back
 
 =head1 RESOURCES
@@ -229,10 +124,6 @@ This template will be included below the form on the C</register> page.
 =head1 SEE ALSO
 
 =over 4
-
-=item * L<Convos::Controller::Archive>
-
-Mojolicious controller for IRC logs.
 
 =item * L<Convos::Controller::Client>
 
@@ -259,17 +150,15 @@ use Convos::Core;
 use Convos::Core::Util ();
 use Convos::Upgrader;
 
-our $VERSION = '0.83';
+our $VERSION = '0.84';
+
+$ENV{CONVOS_DEFAULT_CONNECTION} //= 'irc.perl.org:7062';
 
 =head1 ATTRIBUTES
 
-=head2 archive
-
-Holds a L<Convos::Core::Archive> object.
-
 =head2 core
 
-Holds a L<Convos::Core> object.
+Holds a L<Convos::Core> object .
 
 =head2 upgrader
 
@@ -277,17 +166,12 @@ Holds a L<Convos::Upgrader> object.
 
 =cut
 
-has archive => sub {
-  my $self = shift;
-  Convos::Core::Archive->new($self->config->{archive} || $self->path_to('archive'));
-};
-
 has core => sub {
   my $self = shift;
-  my $core = Convos::Core->new;
+  my $core = Convos::Core->new(redis => $self->redis);
 
   $core->log($self->log);
-  $core->redis->server($self->redis->server);
+  $core->archive->log_dir($ENV{CONVOS_ARCHIVE_DIR} || $self->home->rel_dir('irc_logs'));
   $core;
 };
 
@@ -367,6 +251,7 @@ sub _assets {
       /js/jquery.notify.js
       /js/jquery.disableouterscroll.js
       /js/selectize.js
+      /js/convos.events.js
       /js/convos.sidebar.js
       /js/convos.socket.js
       /js/convos.input.js
@@ -429,8 +314,7 @@ sub _from_cpan {
 
 sub _private_routes {
   my $self = shift;
-  my $r = $self->routes->route->bridge('/')->to('user#auth', layout => 'view');
-  my $network_r;
+  my $r = $self->routes->under('/')->to('user#auth', layout => 'view');
 
   $self->plugin('LinkEmbedder');
 
@@ -443,14 +327,12 @@ sub _private_routes {
   $r->any('/connection/:name/edit')->to('connection#edit_connection')->name('connection.edit');
   $r->get('/connection/:name/delete')->to(template => 'connection/delete_connection', layout => 'tactile');
   $r->post('/connection/:name/delete')->to('connection#delete_connection')->name('connection.delete');
-  $r->any('/network/add')->to('connection#add_network')->name('network.add');
-  $r->any('/network/:name/edit')->to('connection#edit_network')->name('network.edit');
   $r->get('/oembed')->to('oembed#generate', layout => undef)->name('oembed');
   $r->any('/profile')->to('user#edit')->name('user.edit');
   $r->post('/profile/timezone/offset')->to('user#tz_offset');
   $r->get('/wizard')->to('connection#wizard')->name('wizard');
 
-  $network_r = $r->route('/:network');
+  my $network_r = $r->any('/:network');
   $network_r->get('/*target' => [target => qr/[\#\&][^\x07\x2C\s]{1,50}/])->to('client#conversation', is_channel => 1)
     ->name('view');
   $network_r->get('/*target' => [target => qr/[A-Za-z_\-\[\]\\\^\{\}\|\`][A-Za-z0-9_\-\[\]\\\^\{\}\|\`]{1,15}/])
@@ -460,7 +342,7 @@ sub _private_routes {
 
 sub _public_routes {
   my $self = shift;
-  my $r = $self->routes->route->to(layout => 'tactile');
+  my $r = $self->routes->any->to(layout => 'tactile');
 
   $r->get('/')->to('client#route')->name('index');
   $r->get('/avatar')->to('user#avatar')->name('avatar');
