@@ -1,5 +1,5 @@
 % my $nick = stash('nick') || '';
-% my $network = stash('network') || 'convos';
+% my $network = stash('network') || '';
 % my $target = stash('target') || 'any';
 % my $sidebar = stash('sidebar') || 'chat';
 <!DOCTYPE html>
@@ -28,15 +28,10 @@
     </div>
 
     %= form_for 'connection.control', { name => $network }, method => 'post', class => 'input', begin
-      <div class="row">
-        %= hidden_field cmd => 'irc';
-        %= text_field 'irc_cmd', placeholder => "Connecting to backend...", autocomplete => 'off', class => 'disabled', disabled => 'disabled'
-      </div>
+      %= hidden_field cmd => 'irc';
+      %= text_field 'irc_cmd', placeholder => "Connecting to backend...", autocomplete => 'off', class => 'disabled', disabled => 'disabled'
     % end
 
-  % if($full_page) {
-    %= include 'sidebar/add_conversation'
-    %= include 'sidebar/notification_list'
-  % }
+    %= include 'sidebar/notification_list' if stash 'notification_list'
   </body>
 </html>

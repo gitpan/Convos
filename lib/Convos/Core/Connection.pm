@@ -84,75 +84,31 @@ has log   => sub { Mojo::Log->new };
 has login => 0;
 has redis => sub { die 'redis connection required in constructor' };
 
-my @ADD_MESSAGE_EVENTS        = qw/ irc_privmsg ctcp_action irc_notice/;
-my @ADD_SERVER_MESSAGE_EVENTS = qw/
+my @ADD_MESSAGE_EVENTS        = qw( irc_privmsg ctcp_action irc_notice );
+my @ADD_SERVER_MESSAGE_EVENTS = qw(
   irc_rpl_yourhost irc_rpl_motdstart irc_rpl_motd irc_rpl_endofmotd
   irc_rpl_welcome rpl_luserclient
-  /;
-my @OTHER_EVENTS = qw/
+);
+my @OTHER_EVENTS = qw(
   irc_rpl_welcome irc_rpl_myinfo irc_join irc_nick irc_part irc_479
   irc_rpl_whoisuser irc_rpl_whoisidle irc_rpl_whoischannels irc_rpl_endofwhois
   irc_rpl_topic irc_topic
   irc_rpl_topicwhotime irc_rpl_notopic err_nosuchchannel err_nosuchnick
   err_notonchannel err_bannedfromchan irc_rpl_list
   irc_rpl_listend irc_mode irc_quit irc_kick irc_error
-  irc_rpl_namreply irc_rpl_endofnames
-  /;
+  irc_rpl_namreply irc_rpl_endofnames err_nicknameinuse
+);
 
 has _irc => sub {
   my $self = shift;
-  my $irc;
+  my $irc = Mojo::IRC->new(debug_key => join ':', $self->login, $self->name);
 
-  if ($self->name eq 'loopback') {
-    require Convos::Loopback;
-    return Convos::Loopback->new(connection => $self);
-  }
-  else {
-    $irc = Mojo::IRC->new(debug_key => join ':', $self->login, $self->name);
-    $irc->parser(Parse::IRC->new(ctcp => 1));
-  }
+  $irc->parser(Parse::IRC->new(ctcp => 1));
 
   Scalar::Util::weaken($self);
   $irc->register_default_event_handlers;
-  $irc->on(
-    close => sub {
-      my $irc = shift;
-      my $data;
-
-      if ($self->{stop}) {
-        $data = {status => 200, message => 'Disconnected.'};
-        $self->_state('disconnected');
-        $self->_publish_and_save(server_message => $data);
-        $self->_add_convos_message($data);
-        return;
-      }
-      else {
-        $data = {
-          status  => 500,
-          message => "Disconnected from @{[$self->name]}. Attempting reconnect in @{[$self->_reconnect_in]} seconds."
-        };
-        $self->_state('reconnecting');
-        $self->_publish_and_save(server_message => $data);
-        $self->_add_convos_message($data);
-        $irc->ioloop->timer($self->_reconnect_in, sub { $self and $self->_connect });
-      }
-    }
-  );
-  $irc->on(
-    error => sub {
-      my ($irc, $err) = @_;
-      my $data = {
-        status => 500,
-        message =>
-          "Connection to @{[$irc->name]} failed. Attempting reconnect in @{[$self->_reconnect_in]} seconds. ($err)",
-      };
-      $self->{stop} and return $self->_state('disconnected');
-      $self->_state('reconnecting');
-      $self->_publish_and_save(server_message => $data);
-      $self->_add_convos_message($data);
-      $irc->ioloop->timer($self->_reconnect_in, sub { $self and $self->_connect });
-    }
-  );
+  $irc->on(close => sub { $self->_irc_close });
+  $irc->on(error => sub { $self->_irc_error($_[1]) });
 
   for my $event (@ADD_MESSAGE_EVENTS) {
     $irc->on($event => sub { $self->add_message($_[1]) });
@@ -167,8 +123,29 @@ has _irc => sub {
   $irc;
 };
 
-sub _reconnect_in {
-  10 + int rand 30;
+sub _irc_close {
+  my $self = shift;
+  my $name = $self->_irc->name;
+
+  $self->_state('disconnected');
+
+  if ($self->{stop}) {
+    $self->_publish_and_save(server_message => {status => 200, message => 'Disconnected.'});
+    return;
+  }
+
+  $self->_publish_and_save(server_message => {status => 500, message => "Disconnected from $name."});
+  $self->_reconnect;
+}
+
+sub _irc_error {
+  my ($self, $error) = @_;
+  my $name = $self->_irc->name;
+
+  $self->{stop} and return $self->_state('disconnected');
+  $self->_state('disconnected');
+  $self->_publish_and_save(server_message => {status => 500, message => "Connection to $name failed: $error"});
+  $self->_reconnect;
 }
 
 =head1 METHODS
@@ -184,7 +161,6 @@ sub new {
 
   $self->{login} or die "login is required";
   $self->{name}  or die "name is required";
-  $self->{convos_path}       = "user:$self->{login}:connection:convos:msg";
   $self->{conversation_path} = "user:$self->{login}:conversations";
   $self->{path}              = "user:$self->{login}:connection:$self->{name}";
   $self->{state}             = 'disconnected';
@@ -209,24 +185,34 @@ sub connect {
   my ($self) = @_;
   my $irc = $self->_irc;
 
-  # we will try to "steal" the nich we want every 60 second
   Scalar::Util::weaken($self);
-  $self->{keepnick_tid} ||= $irc->ioloop->recurring(
-    60,
+  $self->{core_connect_timer} = 0;
+  $self->{keepnick_tid} ||= $irc->ioloop->recurring(60 => sub { $self->_steal_nick });
+  $self->_subscribe;
+
+  $self->redis->execute(
+    [hgetall => $self->{path}],
+    [get     => 'convos:frontend:url'],
     sub {
-      $self->redis->hget(
-        $self->{path},
-        'nick',
+      my ($redis, $args, $url) = @_;
+      $self->redis->hset($self->{path} => tls => $self->{disable_tls} ? 0 : 1);
+      $irc->name($url || 'Convos');
+      $irc->nick($args->{nick} || $self->login);
+      $irc->pass($args->{password}) if $args->{password};
+      $irc->server($args->{server} || $args->{host});
+      $irc->tls($self->{disable_tls} ? undef : {});
+      $irc->user($args->{username} || $self->login);
+      $irc->connect(
         sub {
-          my ($redis, $nick) = @_;
-          $irc->write(NICK => $nick) if $nick and $irc->nick ne $nick;
-        }
+          my ($irc, $error) = @_;
+          $error and return $self->_connect_failed($error);
+          $self->_publish_and_save(server_message => {status => 200, message => "Connected to IRC server"});
+          $self->_state('connected');
+        },
       );
-    }
+    },
   );
 
-  $self->_connect;
-  $self->_subscribe;
   $self;
 }
 
@@ -235,6 +221,23 @@ sub _state {
 
   $self->{state} = $state;
   $self->redis->hset($self->{path}, state => $state);
+  $self;
+}
+
+sub _steal_nick {
+  my $self = shift;
+
+  # We will try to "steal" the nich we really want every 60 second
+  Mojo::IOLoop->delay(
+    sub {
+      my ($delay) = @_;
+      $self->redis->hget($self->{path}, 'nick', $delay->begin);
+    },
+    sub {
+      my ($delay, $nick) = @_;
+      $self->_irc->write(NICK => $nick) if $nick and $self->_irc->nick ne $nick;
+    }
+  );
 }
 
 sub _subscribe {
@@ -291,58 +294,6 @@ sub _subscribe {
   $self;
 }
 
-sub _connect {
-  my $self = shift;
-  my $irc  = $self->_irc;
-
-  Scalar::Util::weaken($self);
-  $self->redis->execute(
-    [hgetall => $self->{path}],
-    [get     => 'convos:frontend:url'],
-    sub {
-      my ($redis, $args, $url) = @_;
-
-      $self->redis->hset($self->{path} => tls => $self->{disable_tls} ? 0 : 1);
-      $irc->name($url || 'Convos');
-      $irc->nick($args->{nick} || $self->login);
-      $irc->pass($args->{password}) if $args->{password};
-      $irc->server($args->{server} || $args->{host});
-      $irc->tls($self->{disable_tls} ? undef : {});
-      $irc->user($args->{username} || $self->login);
-      $irc->connect(
-        sub {
-          my ($irc, $error) = @_;
-          my $data;
-
-          if ($error) {
-
-            # SSL connect attempt failed with unknown error
-            # error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol
-            if ($error =~ /SSL\d*_GET_SERVER_HELLO/) {
-              $data = {status => 400, message => "This IRC network does not support SSL/TLS."};
-              $self->{disable_tls} = 1;
-              $self->_connect;
-            }
-            else {
-              $data = {status => 500, message => "Could not connect to @{[$irc->server]}: $error"};
-              $irc->ioloop->timer($self->_reconnect_in, sub { $self and $self->_connect });
-            }
-
-            $self->_state('reconnecting');
-          }
-          else {
-            $data = {status => 200, message => "Connected to IRC server"};
-            $self->_state('connected');
-          }
-
-          $self->_publish_and_save(server_message => $data);
-          $self->_add_convos_message($data);
-        }
-      );
-    },
-  );
-}
-
 =head2 channels_from_conversations
 
   @channels = $self->channels_from_conversations(\@conversations);
@@ -378,7 +329,6 @@ sub add_server_message {
 
   $self->_state('connected');
   $self->_publish_and_save(server_message => $data);
-  $self->_add_convos_message($data) if $message->{command} eq '001';
 }
 
 =head2 add_message
@@ -395,18 +345,22 @@ sub add_message {
   my $is_private_message = $message->{params}[0] eq $current_nick;
   my $data = {highlight => 0, message => $message->{params}[1], timestamp => time, uuid => $message->{uuid},};
 
-  @$data{qw/ nick user host /} = IRC::Utils::parse_user($message->{prefix}) if $message->{prefix};
+  @$data{qw( nick user host )} = IRC::Utils::parse_user($message->{prefix}) if $message->{prefix};
   $data->{target} = lc($is_private_message ? $data->{nick} : $message->{params}[0]);
   $data->{host} ||= 'localhost';
-  $data->{user} ||= $self->_irc->user;
 
-  if ($data->{nick} && $data->{nick} ne $current_nick) {
-    if ($is_private_message or $data->{message} =~ /\b$current_nick\b/) {
+  if ($data->{nick}) {
+    if ($data->{nick} eq $current_nick) {
+      $data->{user} ||= $self->_irc->user;
+    }
+    elsif ($is_private_message or $data->{message} =~ /\b$current_nick\b/) {
+      $self->_add_conversation($data->{target}) if $is_private_message and $data->{user};
       $data->{highlight} = 1;
     }
-    if ($is_private_message) {
-      $self->_add_conversation($data->{target});
-    }
+  }
+
+  if (!$data->{user}) {    # server notice/message
+    return $self->add_server_message($message);
   }
 
   # need to take care of when the current user also writes /me...
@@ -467,6 +421,8 @@ Example message:
 
 sub irc_rpl_welcome {
   my ($self, $message) = @_;
+
+  $self->{attempts} = 0;
 
   Scalar::Util::weaken($self);
   $self->redis->zrange(
@@ -666,6 +622,7 @@ sub irc_nick {
   my $new_nick = $message->{params}[0];
 
   if ($new_nick eq $self->_irc->nick) {
+    delete $self->{supress}{err_nicknameinuse};
     $self->redis->hset($self->{path}, current_nick => $new_nick);
   }
 
@@ -693,14 +650,11 @@ sub irc_quit {
 
 =head2 irc_kick
 
-         'raw_line' => ':testing!~marcus@home.means.no KICK #testmore :marcus_',
-          'params' => [
-                        '#testmore',
-                        'marcus_'
-                      ],
-          'command' => 'KICK',
-          'handled' => 1,
-          'prefix' => 'testing!~marcus@40.101.45.31.customer.cdi.no'
+  'raw_line' => ':testing!~marcus@home.means.no KICK #testmore :marcus_',
+  'params' => [ '#testmore', 'marcus_' ],
+  'command' => 'KICK',
+  'handled' => 1,
+  'prefix' => 'testing!~marcus@40.101.45.31.customer.cdi.no'
 
 =cut
 
@@ -710,14 +664,13 @@ sub irc_kick {
   my $channel = lc $message->{params}[0];
   my $nick    = $message->{params}[1];
 
-  Scalar::Util::weaken($self);
   if ($nick eq $self->_irc->nick) {
     my $name = as_id $self->name, $channel;
     $self->redis->zrem($self->{conversation_path}, $name, sub { });
   }
-  $self->_publish(nick_kicked => {by => $nick, nick => $nick, target => $channel});
-}
 
+  $self->_publish(nick_kicked => {by => $by, nick => $nick, target => $channel});
+}
 
 =head2 irc_part
 
@@ -754,11 +707,9 @@ sub irc_part {
 sub err_bannedfromchan {
   my ($self, $message) = @_;
   my $channel = lc $message->{params}[1];
-  my $name    = as_id $self->name, $channel;
-  my $data    = {status => 401, message => $message->{params}[2]};
+  my $name = as_id $self->name, $channel;
 
-  $self->_publish_and_save(server_message => $data);
-  $self->_add_convos_message($data);
+  $self->_publish_and_save(server_message => {status => 401, message => $message->{params}[2]});
 
   Scalar::Util::weaken($self);
   $self->redis->zrem(
@@ -768,6 +719,20 @@ sub err_bannedfromchan {
       $self->_publish(remove_conversation => {target => $channel});
     }
   );
+}
+
+=head2 err_nicknameinuse
+
+=cut
+
+sub err_nicknameinuse {
+  my ($self, $message) = @_;
+
+  if ($self->{supress}{err_nicknameinuse}++) {
+    return;
+  }
+
+  $self->_publish(server_message => {status => 500, message => $message->{params}[2],});
 }
 
 =head2 err_nosuchchannel
@@ -894,10 +859,8 @@ sub irc_mode {
   my $mode   = shift @{$message->{params}};
 
   if ($target eq lc $self->_irc->nick) {
-    my $data = {target => $self->name, message => "You are connected to @{[$self->name]} with mode $mode"};
-
-    $self->_add_convos_message($data);
-    $self->_publish(server_message => $data);
+    $self->_publish(server_message =>
+        {status => 200, target => $self->name, message => "You are connected to @{[$self->name]} with mode $mode"});
   }
   else {
     $self->_publish(mode => {target => $target, mode => $mode, args => join(' ', @{$message->{params}})});
@@ -914,10 +877,10 @@ ERROR :Closing Link: somenick by Tampa.FL.US.Undernet.org (Sorry, your connectio
 
 sub irc_error {
   my ($self, $message) = @_;
-  my $data = {status => 500, message => join(' ', @{$message->{params}}),};
 
-  $self->_publish_and_save(server_message => $data);
-  $self->_add_convos_message($data);
+  # Server dislikes us, we'll back off more
+  $self->{attempts} += 10;
+  $self->_publish_and_save(server_message => {status => 500, message => join(' ', @{$message->{params}})});
 }
 
 =head2 cmd_nick
@@ -973,24 +936,24 @@ sub cmd_list {
   }
 }
 
-sub _add_convos_message {
-  my ($self, $data) = @_;
-  my $login = $self->login;
-  my $message;
+sub _connect_failed {
+  my ($self, $error) = @_;
+  my $server = $self->_irc->server;
 
-  $data->{status} ||= 200;
-  $data->{timestamp} ||= time;
-  local $data->{event}   = 'message';
-  local $data->{host}    = $self->name;
-  local $data->{nick}    = $self->name;
-  local $data->{network} = 'convos';                                        # make sure target in js works
-  local $data->{target}  = '';
-  local $data->{user}    = 'convos';
-  local $data->{uuid}    = Mojo::Util::md5_sum($data->{timestamp} . $$);    # not really an uuid
-  $message = j $data;
-
-  $self->redis->zadd($self->{convos_path}, $data->{timestamp}, $message);
-  $self->redis->publish("convos:user:$login:out", $message);
+  # SSL connect attempt failed with unknown error
+  # error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol
+  if ($error =~ /SSL\d*_GET_SERVER_HELLO/) {
+    $self->_state('reconnecting');
+    $self->_publish_and_save(
+      server_message => {status => 400, message => "This IRC network ($server) does not support SSL/TLS."});
+    $self->{disable_tls}        = 1;
+    $self->{core_connect_timer} = 1;
+  }
+  else {
+    $self->_state('disconnected');
+    $self->_publish_and_save(server_message => {status => 500, message => "Could not connect to $server: $error"});
+    $self->_reconnect;
+  }
 }
 
 sub _publish {
@@ -1037,6 +1000,12 @@ sub _publish_and_save {
   }
 
   $self->emit(save => $data);
+}
+
+sub _reconnect {
+  my $self = shift;
+  $self->{attempts}++;
+  shift->{core_connect_timer} = 30 * $self->{attempts};    # CONNECT_INTERVAL * 30 = 60 seconds
 }
 
 sub DESTROY {

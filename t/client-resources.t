@@ -8,8 +8,8 @@ redis_do(
     'bitlbee:00:23convos'
   ],
   [sadd => 'user:doe:connections', 'magnet', 'bitlbee'],
-  [hmset => 'user:doe:connection:magnet',  nick => 'doe'],
-  [hmset => 'user:doe:connection:bitlbee', nick => 'doe'],
+  [hmset => 'user:doe:connection:magnet',  nick => 'doe', state => 'disconnected'],
+  [hmset => 'user:doe:connection:bitlbee', nick => 'doe', state => 'disconnected'],
 );
 
 $t->post_ok('/login', form => {login => 'doe', password => 'barbar'})
@@ -26,7 +26,7 @@ $t->get_ok('/magnet/batman')->status_is(200)->element_exists('head script')->ele
   ->element_exists('.notification-list.sidebar-right');
 
 $t->get_ok('/magnet/batman?_pjax=some.element')->status_is(200)->element_exists_not('head script')
-  ->element_exists('nav')->element_exists_not('.notifications.container');
+  ->element_exists('nav')->element_exists('.notification-list');
 
 $t->get_ok('/')->header_is('Location', '/magnet/batman', 'Redirect on last conversation');
 

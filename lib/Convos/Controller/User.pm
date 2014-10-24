@@ -30,10 +30,36 @@ sub auth {
     $self->render(json => {}, status => 403);
   }
   else {
-    $self->redirect_to('/');
+    $self->redirect_to('index');
   }
 
   return 0;
+}
+
+=head2 delete
+
+Render a delete user confirmation page on GET and deletes the logged in
+user on POST.
+
+=cut
+
+sub delete {
+  my $self = shift;
+
+  if ($self->req->method ne 'POST') {
+    return $self->render(layout => 'tactile');
+  }
+
+  $self->delay(
+    sub {
+      my ($delay) = @_;
+      $self->app->core->delete_user({login => $self->session('login')}, $delay->begin);
+    },
+    sub {
+      my ($delay, $err) = @_;
+      $self->logout;
+    },
+  );
 }
 
 =head2 login
@@ -117,6 +143,7 @@ sub register {
   $validation->required('password_again')->equal_to('password');
   $validation->required('password')->size(5, 255);
   $output = $validation->output;
+  $output->{login} = lc($output->{login} || '');
 
   $self->delay(
     sub {
@@ -155,7 +182,7 @@ Will delete data from session.
 sub logout {
   my $self = shift;
   $self->session(login => undef);
-  $self->redirect_to('/');
+  $self->redirect_to('index');
 }
 
 =head2 edit

@@ -3,6 +3,7 @@ BEGIN {
   $ENV{N_MESSAGES} = 4;
   $ENV{TEST_TIME}  = 1409443199.9;    # Sun Aug 31 00:59:59.8 2014
   require Convos::Controller::Chat;
+  no warnings qw/prototype/;
   *Convos::Controller::Chat::time = sub { $ENV{TEST_TIME} };
 }
 
@@ -11,8 +12,11 @@ use Mojo::Loader;
 my $loader = Mojo::Loader->new;
 my $time;
 
-redis_do hmset => 'user:doe', digest => 'E2G3goEIb8gpw', email => '';
-redis_do zadd => 'user:doe:conversations', 1, 'magnet:00:23convos';
+redis_do(
+  [hmset => 'user:doe',                   digest => 'E2G3goEIb8gpw', email => ''],
+  [hmset => 'user:doe:connection:magnet', nick   => 'doe',           state => 'disconnected'],
+  [zadd => 'user:doe:conversations', 1, 'magnet:00:23convos'],
+);
 
 for (split /\n/, $loader->data(main => 'convos.log.ep')) {
   /"timestamp":([\d\.]+)/ or die "Invalid regexp for $_";

@@ -1,5 +1,7 @@
 use t::Helper;
 
+plan skip_all => 'Reconnect is disabled';
+
 my $port = Mojo::IOLoop::Server->generate_port;
 my $core = $t->app->core;
 my $conn;
@@ -11,14 +13,9 @@ redis_do(
 );
 
 {
-  no warnings 'redefine';
-  *Convos::Core::Connection::_reconnect_in = sub { Mojo::IOLoop->stop; 0.01 };
-}
-
-{
   $core->ctrl_start('doe', "localhost:$port");
   Mojo::IOLoop->start;
-  ok $conn = $core->{connections}{doe}{"localhost:$port"}, 'connection added';
+  ok $conn = $core->{connections}{"doe:localhost:$port"}, 'connection added';
   ok !$conn->_irc->{stream}, 'irc has no stream';
 }
 
