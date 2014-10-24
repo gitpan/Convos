@@ -9,6 +9,8 @@ lib/Convos/Command/backend.pm
 lib/Convos/Command/flush.pm
 lib/Convos/Command/upgrade.pm
 lib/Convos/Command/version.pm
+lib/Convos/Control.pm
+lib/Convos/Control/Backend.pm
 lib/Convos/Control/Frontend.pm
 lib/Convos/Controller/Chat.pm
 lib/Convos/Controller/Client.pm
@@ -157,7 +159,6 @@ t/chat.t
 t/client-conversation-separator.t
 t/client-day-change.t
 t/client-resources.t
-t/command-backend.t
 t/commands.t
 t/connection-throttling.t
 t/connection.t
@@ -168,6 +169,7 @@ t/core-connection-management.t
 t/core-util.t
 t/customized.t
 t/err-nicknameinuse.t
+t/etc/default/convos
 t/etc/redis.conf
 t/Helper.pm
 t/hypnotoad.t
